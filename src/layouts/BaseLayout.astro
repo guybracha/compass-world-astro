@@ -34,19 +34,57 @@ const { title = "Compass World", description = "A universe of ideas by Guy Brach
     <script src="/scripts/gsap-init.js" defer></script>
   </head>
   <body>
-    <header class="py-4 border-bottom border-secondary-subtle">
-      <div class="container d-flex flex-wrap align-items-center gap-3">
-        <a href="/" class="h3 m-0 fw-bold text-white">Compass <span class="brand">World</span></a>
-        <nav class="ms-auto d-flex gap-3">
-          <a class="text-white-50" href="/characters/">Characters</a>
-          <a class="text-white-50" href="/history/">History</a>
-          <a class="text-white-50" href="/atlas/">Atlas</a>
-          <a class="text-white-50" href="/prime-children/">Prime-Children</a>
-          <a class="text-white-50" href="/villains/">Villains</a>
-          <a class="text-white-50" href="/gallery/">Gallery</a>
-        </nav>
+  <header class="border-bottom border-secondary-subtle">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: transparent;">
+      <div class="container">
+        <!-- Brand -->
+        <a href="/" class="navbar-brand fw-bold">
+          Compass <span class="brand">World</span>
+        </a>
+
+        <!-- Toggler -->
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#mainNav"
+          aria-controls="mainNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Collapsible links -->
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto gap-lg-2">
+            <li class="nav-item">
+              <a class="nav-link text-white-50" href="/characters/">Characters</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white-50" href="/history/">History</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white-50" href="/atlas/">Atlas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white-50" href="/prime-children/">Prime-Children</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white-50" href="/villains/">Villains</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white-50" href="/gallery/">Gallery</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-white-50" href="/about/">About</a>
+            </li>
+          </ul>
+        </div>
       </div>
-    </header>
+    </nav>
+  </header>
+
 
     <main class="py-4">
       <slot />

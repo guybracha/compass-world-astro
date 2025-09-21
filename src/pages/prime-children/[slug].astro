@@ -1,31 +1,75 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, getEntryBySlug } from 'astro:content';
+// src/pages/prime-children/[slug].astro
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getEntryBySlug, getCollection } from "astro:content";
 
-export const prerender = true;
+const { slug } = Astro.params;
+
+// ✅ Build-time paths (if you need SSG)
 export async function getStaticPaths() {
-  const entries = await getCollection('primeChildren');
-  // לא מייצר נתיב ל-overview
-  return entries
-    .filter((e) => (e.data.kind ?? 'member') !== 'overview')
-    .map(({ slug }) => ({ params: { slug } }));
+  const entries = await getCollection("prime-children");
+  return entries.map((e) => ({ params: { slug: e.slug } }));
 }
 
-const entry = await getEntryBySlug('primeChildren', Astro.params.slug!);
-if (!entry) throw new Error('Prime member not found');
-const { Content, data } = await entry.render();
+// ✅ Runtime data lookup with guards
+const entry = await getEntryBySlug("prime-children", slug);
+
+if (!entry) {
+  // Avoid reading properties on undefined and send a 404
+  return new Response(`Prime-Child not found: ${slug}`, { status: 404 });
+}
+
+const data = entry.data ?? {};
+
+// Fallbacks so UI never crashes if a field is missing
+const name = data.name ?? data.title ?? slug;
+const alias = data.alias ?? "";
+const image = data.image ?? "/assets/placeholders/prime-child.webp";
+const short = data.short ?? "Profile coming soon.";
+const powers = Array.isArray(data.powers) ? data.powers : [];
+const links  = Array.isArray(data.links)  ? data.links  : [];
 ---
-<BaseLayout title={`${data.name ?? data.title} | Prime-Children`} description={data.summary}>
-  <section class="container py-5" data-reveal>
-    {data.image && (
-      <img src={data.image} alt={data.name ?? data.title} class="img-fluid rounded-3 mb-4 parallax" />
-    )}
-    <h1 class="h3">{data.name ?? data.title}</h1>
-    {Array.isArray(data.tags) && data.tags.length > 0 && (
-      <div class="d-flex flex-wrap gap-2 mb-3">
-        {data.tags.map((t) => <span class="badge bg-secondary">{t}</span>)}
-      </div>
-    )}
-    <article class="text-white-80"><Content /></article>
-  </section>
+
+<BaseLayout title={`${name} | Prime Children`} class="dark">
+  <main class="container mx-auto py-10 text-slate-100">
+    <article class="grid gap-8 md:grid-cols-[280px,1fr]">
+      <img
+        src={image}
+        alt={name}
+        loading="eager"
+        decoding="async"
+        class="img-fluid rounded-2xl border border-white/10"
+        loading="eager"
+      />
+      <section>
+        <h1 class="text-4xl font-extrabold tracking-tight">{name}</h1>
+        {alias && <p class="mt-1 text-slate-300">{alias}</p>}
+        <p class="mt-4 text-slate-200">{short}</p>
+
+        {powers.length > 0 && (
+          <div class="mt-6">
+            <h2 class="text-xl font-semibold">Powers</h2>
+            <ul class="mt-2 list-disc list-inside space-y-1 text-slate-200">
+              {powers.map((p) => <li>{p}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {links.length > 0 && (
+          <div class="mt-6">
+            <h2 class="text-xl font-semibold">Links</h2>
+            <ul class="mt-2 space-y-1">
+              {links.map((l) => (
+                <li>
+                  <a href={l.href} class="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">
+                    {l.label ?? l.href}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+    </article>
+  </main>
 </BaseLayout>

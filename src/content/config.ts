@@ -59,16 +59,14 @@ const gallery = defineCollection({
 
 /** ✅ חדש: Prime Children – גם דף סקירה וגם פרופילים קצרים של חברים בולטים */
 const primeChildren = defineCollection({
-  type: 'content',
+  type: "content",
   schema: z.object({
-    title: z.string(),
-    name: z.string().optional(),
-    role: z.string().optional(),
+    name: z.string().optional(), // <- optional to prevent crashes
+    alias: z.string().optional(),
     image: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    kind: z.enum(['overview','member']).default('member'),
-    power: z.string().optional(), // ✅ חדש
+    short: z.string().optional(),
+    powers: z.array(z.string()).optional(),
+    links: z.array(z.object({ label: z.string().optional(), href: z.string() })).optional(),
   }),
 });
 

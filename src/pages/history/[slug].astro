@@ -1,27 +1,77 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getEntryBySlug } from 'astro:content';
+// src/pages/history/[slug].astro
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getEntryBySlug, getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("history");
+  return entries.map((e) => ({ params: { slug: e.slug } }));
+}
 
 const { slug } = Astro.params;
-const entry = await getEntryBySlug('history', slug!);
-if (!entry) throw new Error('Event not found');
+const entry = await getEntryBySlug("history", slug);
+
+if (!entry) {
+  return new Response(`Event not found: ${slug}`, { status: 404 });
+}
 
 const { Content, data } = await entry.render();
+const year = data?.year ?? slug;
+const desc = data?.description ?? "";
+const image = data?.image ?? null;
 ---
-<BaseLayout title={`${data.year} | Chronology`}>
+
+<BaseLayout title={`${year} | Chronology`} class="dark">
   <section class="container py-4">
     <a href="/history/" class="text-white-50">← Back</a>
+
     <div class="row mt-3 g-4">
       <div class="col-lg-5">
-        {data.image && <img src={data.image} alt={data.year} class="img-fluid rounded-3 shadow-sm will-animate" />}
+        {image && (
+          <img
+            src={image}
+            alt={year}
+            class="img-fluid rounded-3 shadow-sm will-animate"
+            loading="eager"
+            decoding="async"
+          />
+        )}
       </div>
+
       <div class="col-lg-7">
-        <h1 class="h3">{data.year}</h1>
-        <p class="text-white-50">{data.description}</p>
-        <article class="prose text-white-80">
+        <h1 class="h3 mb-2 will-animate">{year}</h1>
+        {desc && <p class="text-white-50 mb-3 will-animate">{desc}</p>}
+        <article class="prose text-white-80 will-animate">
           <Content />
         </article>
       </div>
     </div>
   </section>
+
+  <style>
+    .will-animate {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .will-animate.in {
+      opacity: 1;
+      transform: none;
+    }
+  </style>
+
+  <script>
+    // מפעיל אנימציית fade-in/slide-up לתמונה + טקסט
+    const els = document.querySelectorAll('.will-animate');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    els.forEach(el => io.observe(el));
+  </script>
 </BaseLayout>
