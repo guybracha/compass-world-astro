@@ -1,27 +1,164 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import '../styles/home.css'; // ← ייבוא ה-CSS החיצוני
 ---
 
-<BaseLayout title="Compass World | Home">
-  <header class="hero container">
-    <h1 class="title">Compass World</h1>
-    <p class="subtitle">A living sci-fi/fantasy universe by Guy Bracha</p>
-    <div class="mt-3 d-flex justify-content-center gap-2">
-      <a class="btn btn-brand" href="/characters/">Characters</a>
-      <a class="btn btn-ghost" href="/history/">Chronology</a>
+<BaseLayout title="Compass World | Home" class="dark">
+  <header class="cw-hero container-xxl">
+    <div class="cw-hero__inner">
+      <div class="cw-hero__eyebrow">Universe Wiki</div>
+      <h1 class="cw-hero__title">Compass World</h1>
+      <p class="cw-hero__subtitle">
+        A living sci-fi/fantasy universe by Guy Bracha — explore characters, eras, and cosmic mysteries.
+      </p>
+      <div class="mt-3 d-flex flex-wrap justify-content-center gap-2">
+        <a class="btn btn-brand btn-lg px-4" href="/characters/">
+          <i class="bi bi-people me-2"></i> Characters
+        </a>
+        <a class="btn btn-ghost btn-lg px-4" href="/history/">
+          <i class="bi bi-clock-history me-2"></i> Chronology
+        </a>
+        <a class="btn btn-outline-light btn-lg px-4" href="/primeChildren.html">
+          Prime-Children
+        </a>
+      </div>
     </div>
   </header>
-
-  <section class="container my-5">
-    <h2 class="section-title">Featured Projects</h2>
-    <div class="row g-3">
-      <div class="col-12 col-md-4">
-        <article class="card p-3">
-          <h3 class="card-title h5 mb-1">Project One</h3>
-          <p class="card-text">Short teaser about the project.</p>
-        </article>
+    <style>
+      .will-animate {
+        opacity: 0;
+        transform: translateY(12px);
+        transition: opacity .6s ease, transform .6s ease;
+      }
+      .will-animate.in {
+        opacity: 1;
+        transform: none;
+      }
+    </style>
+  <main class="container-xxl my-5">
+    <!-- Highlights -->
+    <section class="mb-5">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <h2 class="section-title m-0">Featured Projects</h2>
+        <a href="/gallery/" class="link-light text-decoration-none">
+          Browse all <i class="bi bi-arrow-right-short"></i>
+        </a>
       </div>
-      <!-- שכפל כרטיסים נוספים -->
-    </div>
-  </section>
+
+      <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-lg-3">
+        <div class="col">
+          <article class="card cw-card h-100">
+            <div class="ratio ratio-16x9 cw-card__media" style="--bg:url('/contents/hero/compass-teaser.webp')"></div>
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-warning text-dark">New</span>
+                <span class="text-secondary small">Lore</span>
+              </div>
+              <h3 class="h5 card-title mb-1">The Compass Alliance</h3>
+              <p class="card-text mb-3">Teen heroes from across the world learn to fight as one.</p>
+              <a class="btn btn-sm btn-brand" href="/atlas/">Open Atlas</a>
+            </div>
+          </article>
+        </div>
+
+        <div class="col">
+          <article class="card cw-card h-100">
+            <div class="ratio ratio-16x9 cw-card__media" style="--bg:url('/contents/historyImg/napoleon.webp')"></div>
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-info text-dark">Timeline</span>
+                <span class="text-secondary small">History</span>
+              </div>
+              <h3 class="h5 card-title mb-1">Chronology</h3>
+              <p class="card-text mb-3">From ancient meteors to modern uprisings — all key events.</p>
+              <a class="btn btn-sm btn-ghost" href="/history/">Explore</a>
+            </div>
+          </article>
+        </div>
+
+        <div class="col">
+          <article class="card cw-card h-100">
+            <div class="ratio ratio-16x9 cw-card__media" style="--bg:url('/contents/primeChildren/cover.webp')"></div>
+            <div class="card-body">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-danger">Comics</span>
+                <span class="text-secondary small">Visual</span>
+              </div>
+              <h3 class="h5 card-title mb-1">Prime-Children</h3>
+              <p class="card-text mb-3">An era of empowered youth changing the fate of Earth.</p>
+              <a class="btn btn-sm btn-outline-light" href="/primeChildren.html">Read more</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick links -->
+    <section class="cw-quicklinks py-4 px-3 rounded-4 border">
+      <div class="row g-3 align-items-stretch">
+        <div class="col-12 col-lg-4">
+          <div class="cw-ql card h-100">
+            <div class="card-body d-flex align-items-start gap-3">
+              <i class="bi bi-map-fill fs-2"></i>
+              <div>
+                <h3 class="h6 mb-1">World & Factions</h3>
+                <p class="mb-2 text-secondary">Locations, organizations, artifacts.</p>
+                <a class="btn btn-sm btn-ghost" href="/world/">Enter</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+          <div class="cw-ql card h-100">
+            <div class="card-body d-flex align-items-start gap-3">
+              <i class="bi bi-stars fs-2"></i>
+              <div>
+                <h3 class="h6 mb-1">Gallery</h3>
+                <p class="mb-2 text-secondary">Concept art, posters, team shots.</p>
+                <a class="btn btn-sm btn-ghost" href="/gallery/">View</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+          <div class="cw-ql card h-100">
+            <div class="card-body d-flex align-items-start gap-3">
+              <i class="bi bi-journal-richtext fs-2"></i>
+              <div>
+                <h3 class="h6 mb-1">About</h3>
+                <p class="mb-2 text-secondary">What is Compass World and why it exists.</p>
+                <a class="btn btn-sm btn-ghost" href="/about/">Read</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="text-center my-5 py-5 cw-cta rounded-4">
+      <h2 class="display-6 mb-2">Start with the Chronology</h2>
+      <p class="text-secondary mb-3">
+        Jump into the timeline and discover how everything connects.
+      </p>
+      <a class="btn btn-brand btn-lg px-4" href="/history/">
+        Begin the Journey
+      </a>
+    </section>
+    <script>
+    const els = document.querySelectorAll('.will-animate');
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('in'), i * 120); // stagger 120ms
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    els.forEach(el => io.observe(el));
+  </script>
+  </main>
 </BaseLayout>
