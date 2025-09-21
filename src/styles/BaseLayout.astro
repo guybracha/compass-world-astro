@@ -1,28 +1,43 @@
-<head>
-  <!-- אם הקובץ ב-public -->
-  <link rel="stylesheet" href="/styles/custom.css" />
+---
+import './custom.css'; // כי הקובץ באותה תיקייה
+---
+<html lang="en" class="no-js" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title><slot name="title" />Compass World</title>
+    <slot name="head" />
 
-  <!-- עדיף inline כדי לא להמתין ל-bundle של Astro -->
-  <script is:inline>
-    (function () {
-      const root = document.documentElement;
+    <!-- GSAP קודם, ואז הסקריפט שלך (להניח ב: public/scripts/gsap-init.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
+    <script src="/scripts/gsap-init.js" defer></script>
 
-      // החלת מצב נוכחי מיד (מונע "פלאש" של מצב לא נכון)
-      const apply = (mode) => {
-        root.setAttribute('data-theme', mode);
-        localStorage.setItem('theme', mode);
-      };
-      apply(localStorage.getItem('theme') || 'dark');
+    <!-- Theme toggle + no-js removal -->
+    <script is:inline>
+      (function () {
+        // הסר no-js כדי לאפשר CSS/JS תלויי-מחלקה
+        document.documentElement.classList.remove('no-js');
 
-      // חכה ל-DOM ואז חבר את הכפתור
-      window.addEventListener('DOMContentLoaded', () => {
-        const btn = document.getElementById('themeToggle');
-        if (!btn) return;
-        btn.addEventListener('click', () => {
-          const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-          apply(next);
+        // החלת מצב ערכה לפני ציור הדף (למניעת פלאש)
+        const root = document.documentElement;
+        const apply = (m) => { root.setAttribute('data-theme', m); localStorage.setItem('theme', m); };
+        apply(localStorage.getItem('theme') || 'dark');
+
+        // קישור כפתור החלפת ערכה אחרי טעינת ה-DOM
+        window.addEventListener('DOMContentLoaded', () => {
+          const btn = document.getElementById('themeToggle');
+          if (!btn) return;
+          btn.addEventListener('click', () => {
+            const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            apply(next);
+          });
         });
-      });
-    })();
-  </script>
-</head>
+      })();
+    </script>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
