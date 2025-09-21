@@ -1,0 +1,30 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, getEntryBySlug } from 'astro:content';
+
+const { slug } = Astro.params;
+const entry = await getEntryBySlug('characters', slug!);
+if (!entry) throw new Error('Character not found');
+
+const { Content, data } = await entry.render();
+---
+<BaseLayout title={`${data.name} | Compass World`} description={data.summary}>
+  <section class="container py-4">
+    <a href="/characters/" class="text-white-50">← Back</a>
+    <div class="row mt-3 g-4">
+      <div class="col-lg-4">
+        {data.image && <img src={data.image} alt={data.name} class="img-fluid rounded-3 shadow-sm will-animate" />}
+      </div>
+      <div class="col-lg-8">
+        <h1 class="h3">{data.name}</h1>
+        {data.team && <p class="text-white-50 mb-1">Team: {data.team}</p>}
+        {data.powers?.length && (
+          <p class="text-white-50 mb-3">Powers: {data.powers.join(', ')}</p>
+        )}
+        <article class="prose text-white-80">
+          <Content />
+        </article>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

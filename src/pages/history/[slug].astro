@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getEntryBySlug } from 'astro:content';
+
+const { slug } = Astro.params;
+const entry = await getEntryBySlug('history', slug!);
+if (!entry) throw new Error('Event not found');
+
+const { Content, data } = await entry.render();
+---
+<BaseLayout title={`${data.year} | Chronology`}>
+  <section class="container py-4">
+    <a href="/history/" class="text-white-50">← Back</a>
+    <div class="row mt-3 g-4">
+      <div class="col-lg-5">
+        {data.image && <img src={data.image} alt={data.year} class="img-fluid rounded-3 shadow-sm will-animate" />}
+      </div>
+      <div class="col-lg-7">
+        <h1 class="h3">{data.year}</h1>
+        <p class="text-white-50">{data.description}</p>
+        <article class="prose text-white-80">
+          <Content />
+        </article>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

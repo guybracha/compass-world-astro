@@ -1,0 +1,9 @@
+---
+const { title, href, tag } = Astro.props;
+---
+<div class="col-12 col-md-6 col-lg-4">
+  <a class="card p-3 h-100 will-animate d-block" href={href} target="_blank" rel="noreferrer">
+    <h3 class="h5 text-white mb-1">{title}</h3>
+    <small class="text-white-50">{tag}</small>
+  </a>
+</div>

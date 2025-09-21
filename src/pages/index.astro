@@ -1,16 +1,19 @@
 ---
-
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Hero from '../components/Hero.tsx';
+import ProjectCard from '../components/ProjectCard.astro';
 ---
+<BaseLayout title="Compass World | Home" description="A universe of ideas by Guy Bracha">
+  <section class="container py-5">
+    <Hero client:load />  <!-- GSAP רץ בקליינט -->
+  </section>
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+  <section class="container py-4">
+    <h2 class="h3 mb-3">Featured Projects</h2>
+    <div class="row g-4">
+      <ProjectCard title="Compass World (Legacy)" href="https://guybracha.github.io/compass-world/" tag="HTML/CSS/JS" />
+      <ProjectCard title="Comixiad" href="https://comixiad.com/" tag="React/Node" />
+      <ProjectCard title="Karina" href="https://karina.co.il/" tag="React/Firebase" />
+    </div>
+  </section>
+</BaseLayout>

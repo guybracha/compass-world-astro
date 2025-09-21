@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+const list = await getCollection('history');
+const sorted = [...list].sort((a,b) => a.data.year.localeCompare(b.data.year));
+---
+<BaseLayout title="Chronology | Compass World">
+  <section class="container py-4">
+    <h1 class="h3 mb-4">Chronology</h1>
+    <div class="row g-4">
+      {sorted.map((h) => (
+        <div class="col-12 col-md-6 col-lg-4">
+          <a class="card p-3 h-100 d-block will-animate" href={`/history/${h.slug}/`}>
+            <h2 class="h5 text-white mb-1">{h.data.year}</h2>
+            {h.data.image && <img src={h.data.image} alt={h.data.year} class="img-cover mt-2" loading="lazy" />}
+            <p class="text-white-50 mt-2 mb-0">{h.data.description}</p>
+          </a>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
