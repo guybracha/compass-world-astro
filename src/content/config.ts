@@ -61,15 +61,17 @@ const gallery = defineCollection({
 const primeChildren = defineCollection({
   type: 'content',
   schema: z.object({
-    title: z.string(),            // לדף הסקירה
-    name: z.string().optional(),  // לפרופיל של חבר
+    title: z.string(),
+    name: z.string().optional(),
     role: z.string().optional(),
     image: z.string().optional(),
     summary: z.string().optional(),
     tags: z.array(z.string()).default([]),
     kind: z.enum(['overview','member']).default('member'),
+    power: z.string().optional(), // ✅ חדש
   }),
 });
+
 
 /** ✅ חדש: Villains – הן ארגונים (org) והן דמויות (leader/member) */
 const villains = defineCollection({
@@ -86,6 +88,17 @@ const villains = defineCollection({
   }),
 });
 
+const history = defineCollection({
+  type: 'content',
+  schema: z.object({
+    year: z.string(),
+    description: z.string(),
+    image: z.string().optional(),
+    order: z.number().optional(),  // נסדר לפי זה
+    updated: z.string().optional(),
+  }),
+});
+
 export const collections = {
-  characters, atlas, ideas, pages, gallery, primeChildren, villains
+  characters, atlas, ideas, pages, gallery, primeChildren, villains, history,
 };

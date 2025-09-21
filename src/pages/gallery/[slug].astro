@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, getEntryBySlug } from 'astro:content';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const entries = await getCollection('gallery');
+  return entries.map(({ slug }) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const entry = await getEntryBySlug('gallery', slug!);
+if (!entry) {
+  throw new Error(`Gallery item not found: ${slug}`);
+}
+
+// נתונים של הפריט הנוכחי
+const rendered = await entry.render();
+const data = rendered?.data ?? {};
+const Content = rendered?.Content;
+
+const title = (data.title ?? slug).toString();
+const image = data.image ?? '/images/gallery-placeholder.svg';
+const caption = (data.caption ?? '').toString();
+const tags = Array.isArray(data.tags) ? data.tags : [];
+const sourceUrl = (data.sourceUrl ?? '').toString();
+const updated = (data.updated ?? '').toString();
+
+// לאינדקס וניווט
+const all = (await getCollection('gallery')).sort((a, b) => a.slug.localeCompare(b.slug));
+const idx = all.findIndex((i) => i.slug === slug);
+const prev = idx > 0 ? all[idx - 1] : null;
+const next = idx < all.length - 1 ? all[idx + 1] : null;
+---
+
+<BaseLayout title={`${title} | Gallery`} description={caption}>
+  <section class="container py-5" data-reveal>
+    <a href="/gallery/" class="text-white-50">← Back to Gallery</a>
+
+    <div class="row g-4 mt-2">
+      <div class="col-lg-6">
+        <div class="card p-3 pc-glow" data-tilt>
+          <img
+            src={image}
+            alt={title}
+            class="img-fluid rounded-3 parallax"
+            loading="lazy"
+            onerror="this.onerror=null;this.src='/images/gallery-placeholder.svg';"
+          />
+        </div>
+        {caption && <p class="text-white-50 small mt-3 mb-0">{caption}</p>}
+        {updated && <p class="text-white-50 small mt-1 mb-0">Updated: {updated}</p>}
+      </div>
+
+      <div class="col-lg-6">
+        <h1 class="h3 mb-3">{title}</h1>
+
+        {tags.length > 0 && (
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            {tags.map((t) => <span class="badge bg-secondary">{t}</span>)}
+          </div>
+        )}
+
+        {sourceUrl && (
+          <p class="mb-4">
+            <a href={sourceUrl} target="_blank" rel="noopener" class="btn btn-outline-warning btn-sm">
+              Source
+            </a>
+          </p>
+        )}
+
+        {Content && (
+          <article class="text-white-80">
+            <Content />
+          </article>
+        )}
+      </div>
+    </div>
+
+    {/* ניווט הקודם/הבא */}
+    <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-secondary-subtle">
+      <div>
+        {prev ? (
+          <a class="btn btn-outline-light btn-sm" href={`/gallery/${prev.slug}/`}>← {prev.data?.title ?? prev.slug}</a>
+        ) : <span />}
+      </div>
+      <div>
+        {next ? (
+          <a class="btn btn-outline-light btn-sm" href={`/gallery/${next.slug}/`}>{next.data?.title ?? next.slug} →</a>
+        ) : <span />}
+      </div>
+    </div>
+  </section>
+
+  <style is:global>
+    .pc-glow { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
+  </style>
+</BaseLayout>

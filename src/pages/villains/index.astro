@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('villains');
+const orgs    = all.filter(e => e.data.kind === 'org');
+const leaders = all.filter(e => e.data.kind === 'leader');
+---
+<BaseLayout title="Villains | Compass World" description="Organizations & leaders">
+  <section class="container py-5">
+    <h1 class="display-6 mb-4">Villains</h1>
+
+    <h2 class="h5 mb-3">Organizations</h2>
+    <div class="row g-4 mb-5">
+      {orgs.map(({ slug, data }) => (
+        <div class="col-md-6" data-reveal>
+          <a class="card p-3 d-block" href={`/villains/${slug}/`} data-tilt>
+            {data.image && <img src={data.image} alt={data.title} class="img-cover mb-3 parallax" />}
+            <h3 class="h5 m-0">{data.title}</h3>
+            {Array.isArray(data.leaders) && data.leaders.length>0 && (
+              <div class="small text-white-50 mt-1">Leaders: {data.leaders.join(', ')}</div>
+            )}
+          </a>
+        </div>
+      ))}
+    </div>
+
+    <h2 class="h5 mb-3">Leaders</h2>
+    <div class="row g-4">
+      {leaders.map(({ slug, data }) => (
+        <div class="col-sm-6 col-lg-4" data-reveal>
+          <a class="card p-3 d-block" href={`/villains/${slug}/`} data-tilt>
+            {data.image && <img src={data.image} alt={data.title} class="img-cover mb-3 parallax" />}
+            <h3 class="h6 m-0">{data.title}</h3>
+            {data.org && <div class="small text-white-50 mt-1">{data.org}</div>}
+          </a>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

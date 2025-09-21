@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, getEntryBySlug } from 'astro:content';
+
+export const prerender = true;
+export async function getStaticPaths() {
+  const entries = await getCollection('villains');
+  return entries.map(({ slug }) => ({ params: { slug } }));
+}
+
+const entry = await getEntryBySlug('villains', Astro.params.slug!);
+if (!entry) throw new Error('Villain not found');
+const { Content, data } = await entry.render();
+---
+<BaseLayout title={`${data.title} | Villains`} description={data.summary}>
+  <section class="container py-5" data-reveal>
+    {data.image && <img src={data.image} alt={data.title} class="img-fluid rounded-3 mb-4 parallax" />}
+    <h1 class="h3">{data.title}</h1>
+    {data.org && <div class="text-white-50 mb-2">Organization: {data.org}</div>}
+    <article class="text-white-80"><Content /></article>
+  </section>
+</BaseLayout>

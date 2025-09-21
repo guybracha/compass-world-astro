@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+const items = (await getCollection('atlas')).sort((a,b) =>
+  (a.data.region ?? '').localeCompare(b.data.region ?? '') || a.slug.localeCompare(b.slug)
+);
+---
+<BaseLayout title="Atlas | Compass World" description="Places & regions">
+  <section class="container py-5">
+    <h1 class="display-6 mb-4">Atlas</h1>
+    <div class="row g-4">
+      {items.map(({ slug, data }) => (
+        <div class="col-md-6 col-lg-4" data-reveal>
+          <a class="card p-3 d-block" href={`/atlas/${slug}/`} data-tilt>
+            {data.image && <img src={data.image} alt={data.title} class="img-cover mb-3 parallax" />}
+            <h2 class="h5 m-0">{data.title}</h2>
+            {data.region && <div class="text-white-50 small">{data.region}</div>}
+          </a>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

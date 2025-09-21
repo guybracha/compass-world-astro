@@ -1,0 +1,50 @@
+---
+// src/pages/atlas/[slug].astro
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, getEntryBySlug } from 'astro:content';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const entries = await getCollection('atlas');
+  return entries.map(({ slug }) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const entry = await getEntryBySlug('atlas', slug!);
+if (!entry) {
+  throw new Error(`Atlas entry not found: ${slug}`);
+}
+
+const rendered = await entry.render();
+const data = rendered?.data ?? {};
+const Content = rendered?.Content;
+
+const title = (data.title ?? slug).toString();
+const region = (data.region ?? '').toString();
+const description = (data.description ?? '').toString();
+const image = data.image ?? '/images/avatar-placeholder.svg'; // fallback
+---
+
+<BaseLayout title={`${title} | Atlas`} description={description}>
+  <section class="container py-5" data-reveal>
+    <a href="/atlas/" class="text-white-50">← Back</a>
+
+    <div class="row g-4 mt-2">
+      <div class="col-lg-5">
+        <img src={image} alt={title} class="img-fluid rounded-3 shadow-sm parallax" loading="lazy" />
+      </div>
+
+      <div class="col-lg-7">
+        <h1 class="h3">{title}</h1>
+        {region && <p class="text-white-50 mb-2">Region: {region}</p>}
+        {description && <p class="text-white-50">{description}</p>}
+        {Content && (
+          <article class="text-white-80 mt-3">
+            <Content />
+          </article>
+        )}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

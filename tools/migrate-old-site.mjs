@@ -21,6 +21,8 @@ async function ensureDirs() {
   await fs.mkdir(path.join(OUT_CONTENT, 'gallery'), { recursive: true });
   await fs.mkdir(path.join(OUT_CONTENT, 'primeChildren'), { recursive: true }); // ✅ חדש
   await fs.mkdir(path.join(OUT_CONTENT, 'villains'), { recursive: true });      // ✅ חדש
+  await fs.mkdir(path.join(OUT_CONTENT, 'history'), { recursive: true });
+  await fs.mkdir(path.join(OUT_IMG, 'history'), { recursive: true });
 }
 
 async function fetchHtml(url) {
@@ -540,6 +542,88 @@ async function migratePages() {
   }
 }
 
+/* ------------- HISTORY → history ---------------- */
+async function migrateHistory() {
+  // נסיון להביא את הקובץ מהאתר הישן (שנה/הוסף נתיבים אם צריך)
+  const candidates = [
+    `${BASE}/assets/scripts/historyJson.js`,
+    `${BASE}/assets/historyJson.js`,
+    `${BASE}/historyJson.js`
+  ];
+
+  let txt = null;
+  for (const url of candidates) {
+    try {
+      txt = await fetchHtml(url);
+      if (txt) { console.log('history: loaded', url); break; }
+    } catch {}
+  }
+
+  // אופציה: קריאה מקומית אם שמרת את הקובץ בפרויקט
+  if (!txt) {
+    try {
+      txt = await fs.readFile('legacy/historyJson.js', 'utf8'); // שנה מיקום אם צריך
+      console.log('history: loaded local legacy/historyJson.js');
+    } catch {}
+  }
+
+  if (!txt) { console.warn('history: file not found, skipping'); return; }
+
+  // חילוץ המערך HistoryList מתוך קובץ JS
+  let list = [];
+  try {
+    const fn = new Function(`${txt}; return (typeof HistoryList!=='undefined') ? HistoryList : [];`);
+    list = fn();
+  } catch (e) {
+    // נסיון גיבוי עם רג׳קס
+    const m = txt.match(/HistoryList\s*=\s*(\[[\s\S]*?\]);/);
+    if (m) {
+      try { list = JSON.parse(m[1]); } catch {}
+    }
+  }
+
+  if (!Array.isArray(list) || !list.length) {
+    console.warn('history: no items parsed, skipping');
+    return;
+  }
+
+  let written = 0;
+  for (let i = 0; i < list.length; i++) {
+    const it = list[i] || {};
+    const year = String(it.year || '').trim();
+    const description = String(it.description || '').trim();
+    const imgSrc = it.image ? abs(it.image) : null;
+
+    // הורדת תמונה (אם קיימת)
+    let imagePath = null;
+    if (imgSrc) {
+      imagePath = await downloadImage(imgSrc, year || `history-${i+1}`, 'history');
+      await sleep(60);
+    }
+
+    // שם קובץ עם אינדקס לשמירה על הסדר הכרונולוגי
+    const slug = `${String(i + 1).padStart(3, '0')}-${toSlug(year || `entry-${i+1}`)}`;
+
+    const fm = [
+      '---',
+      `year: ${JSON.stringify(year)}`,
+      `description: ${JSON.stringify(description)}`,
+      `image: ${imagePath ? JSON.stringify(imagePath) : '""'}`,
+      `order: ${i + 1}`,
+      '---',
+      '',
+      description,
+      ''
+    ].join('\n');
+
+    await fs.writeFile(path.join(OUT_CONTENT, 'history', `${slug}.mdx`), fm, 'utf8');
+    written++;
+  }
+
+  console.log(`history: wrote ${written} files`);
+}
+
+
 /* ------------- MAIN ---------------- */
 (async () => {
   await ensureDirs();
@@ -550,5 +634,6 @@ async function migratePages() {
   await migratePrimeChildren();   // ✅ חדש
   await migrateVillains();        // ✅ חדש
   await migratePages();
+  await migrateHistory();
   console.log('✅ Migration done.');
 })();

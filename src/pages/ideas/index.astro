@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+const items = (await getCollection('ideas')).sort((a,b) => a.slug.localeCompare(b.slug));
+---
+<BaseLayout title="Ideas | Compass World" description="Story seeds & mechanics">
+  <section class="container py-5">
+    <h1 class="display-6 mb-4">Ideas</h1>
+    <div class="row g-4">
+      {items.map(({ data }) => (
+        <div class="col-md-6" data-reveal>
+          <div class="card p-3" data-tilt>
+            <h2 class="h5 m-0">{data.title}</h2>
+            {data.status && <div class="small text-white-50 mt-1">Status: {data.status}</div>}
+            {data.summary && <p class="text-white-80 mt-2">{data.summary}</p>}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

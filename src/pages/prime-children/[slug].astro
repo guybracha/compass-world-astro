@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, getEntryBySlug } from 'astro:content';
+
+export const prerender = true;
+export async function getStaticPaths() {
+  const entries = await getCollection('primeChildren');
+  // לא מייצר נתיב ל-overview
+  return entries
+    .filter((e) => (e.data.kind ?? 'member') !== 'overview')
+    .map(({ slug }) => ({ params: { slug } }));
+}
+
+const entry = await getEntryBySlug('primeChildren', Astro.params.slug!);
+if (!entry) throw new Error('Prime member not found');
+const { Content, data } = await entry.render();
+---
+<BaseLayout title={`${data.name ?? data.title} | Prime-Children`} description={data.summary}>
+  <section class="container py-5" data-reveal>
+    {data.image && (
+      <img src={data.image} alt={data.name ?? data.title} class="img-fluid rounded-3 mb-4 parallax" />
+    )}
+    <h1 class="h3">{data.name ?? data.title}</h1>
+    {Array.isArray(data.tags) && data.tags.length > 0 && (
+      <div class="d-flex flex-wrap gap-2 mb-3">
+        {data.tags.map((t) => <span class="badge bg-secondary">{t}</span>)}
+      </div>
+    )}
+    <article class="text-white-80"><Content /></article>
+  </section>
+</BaseLayout>

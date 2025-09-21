@@ -1,0 +1,271 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('primeChildren');
+
+// overview (אם קיים)
+const overviewEntry = all.find((e) => (e.data.kind ?? 'member') === 'overview');
+let OverviewContent = null;
+let odata: any = null;
+if (overviewEntry) {
+  const rendered = await overviewEntry.render();
+  OverviewContent = rendered.Content;
+  odata = rendered.data;
+}
+
+// חברים
+const members = all
+  .filter((e) => (e.data.kind ?? 'member') !== 'overview')
+  .sort((a, b) => a.slug.localeCompare(b.slug));
+
+/** עיבוד נתונים לסינון */
+const PLACEHOLDER = '/images/avatar-placeholder.svg';
+const SIDE_WORDS = new Set(['hero', 'villain']); // נזהה Side גם מה-tags אם אין שדה side
+
+/** גזירת side מכל פריט */
+function getSide(d: any): string {
+  if (d.side) return String(d.side);
+  if (Array.isArray(d.tags)) {
+    const lower = d.tags.map((t: string) => t.toLowerCase());
+    if (lower.includes('hero')) return 'Hero';
+    if (lower.includes('villain')) return 'Villain';
+  }
+  return '';
+}
+
+/** Power ייחודיים */
+const powers = Array.from(
+  new Set(
+    members.map((m) => m.data.power).filter(Boolean) as string[]
+  )
+).sort((a, b) => a.localeCompare(b));
+
+/** Sides ייחודיים (Hero/Villain) */
+const sides = Array.from(
+  new Set(
+    members.map((m) => getSide(m.data)).filter(Boolean)
+  )
+).sort();
+
+/** קטגוריות ייחודיות מתוך tags, תוך ניפוי צדדים */
+const categories = Array.from(
+  new Set(
+    members.flatMap((m) => (Array.isArray(m.data.tags) ? m.data.tags : []))
+      .filter(Boolean)
+      .filter((t) => !SIDE_WORDS.has(String(t).toLowerCase()))
+  )
+).sort((a, b) => String(a).localeCompare(String(b)));
+---
+
+<BaseLayout title="Prime-Children | Compass World" description="Overview & roster">
+  <section class="container py-5">
+    <header class="mb-4" data-reveal>
+      <h1 class="pc-gradient-title display-6 mb-2">Prime-Children</h1>
+      <p class="text-white-50 m-0">A generation of power. A world reshaped.</p>
+    </header>
+
+    {OverviewContent && (
+      <article class="card p-4 mb-4 pc-glass" data-reveal>
+        {odata?.image && (
+          <img
+            src={odata.image}
+            alt={odata?.title ?? 'Prime-Children'}
+            class="img-fluid rounded-3 mb-3 parallax"
+          />
+        )}
+        <OverviewContent />
+      </article>
+    )}
+
+    {/* 🔎 סרגל סינון */}
+    <div class="row g-3 align-items-end mb-3">
+      <div class="col-12 col-md-3">
+        <label for="filterSide" class="form-label small text-white-50">Side</label>
+        <select id="filterSide" class="form-select bg-black text-white border-secondary">
+          <option value="">All</option>
+          {sides.map((s) => <option value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <label for="filterPower" class="form-label small text-white-50">Power</label>
+        <select id="filterPower" class="form-select bg-black text-white border-secondary">
+          <option value="">All</option>
+          {powers.map((p) => <option value={p}>{p}</option>)}
+        </select>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <label for="filterCat" class="form-label small text-white-50">Category</label>
+        <select id="filterCat" class="form-select bg-black text-white border-secondary">
+          <option value="">All</option>
+          {categories.map((c) => <option value={c}>{c}</option>)}
+        </select>
+      </div>
+
+      <div class="col-12 col-md-3">
+        <label for="filterSearch" class="form-label small text-white-50">Search</label>
+        <input id="filterSearch" type="search" class="form-control bg-black text-white border-secondary" placeholder="Name, power or tag…" />
+      </div>
+    </div>
+
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-4">
+      <div class="text-white-50 small">
+        Results: <strong id="pcCount">{members.length}</strong>
+      </div>
+      <div class="ms-auto d-flex gap-2">
+        <select id="sortBy" class="form-select form-select-sm bg-black text-white border-secondary" style="width:auto">
+          <option value="name-asc">Sort: Name A→Z</option>
+          <option value="name-desc">Sort: Name Z→A</option>
+          <option value="power-asc">Sort: Power A→Z</option>
+          <option value="power-desc">Sort: Power Z→A</option>
+        </select>
+        <button id="clearFilters" class="btn btn-outline-light btn-sm">Clear</button>
+      </div>
+    </div>
+
+    <div class="row g-4" id="pcGrid">
+      {members.length > 0 ? (
+        members.map(({ slug, data }) => {
+          const name = data.name ?? data.title;
+          const side = getSide(data);
+          const img = data.image ?? PLACEHOLDER;
+          const tagList = Array.isArray(data.tags) ? data.tags : [];
+          const indexText = [name, data.power ?? '', side, ...tagList].join(' ').toLowerCase();
+
+          return (
+            <div
+              class="col-sm-6 col-lg-4"
+              data-reveal
+              data-card
+              data-name={name.toLowerCase()}
+              data-power={(data.power ?? '').toLowerCase()}
+              data-side={side.toLowerCase()}
+              data-tags={(tagList.join(' ') || '').toLowerCase()}
+              data-index={indexText}
+            >
+              <a class="card p-3 d-block h-100 pc-card pc-glow" href={`/prime-children/${slug}/`} data-tilt>
+                <div class="pc-thumb mb-3">
+                  <img src={img} alt={name} class="img-cover parallax" loading="lazy" />
+                </div>
+                <h2 class="h5 m-0">{name}</h2>
+                <div class="mt-2 d-flex flex-wrap gap-2">
+                  {side && <span class={`badge ${side === 'Villain' ? 'bg-danger' : 'bg-success'}`}>{side}</span>}
+                  {data.power && <span class="badge bg-warning text-dark">{data.power}</span>}
+                  {tagList.map((t) => <span class="badge bg-secondary">{t}</span>)}
+                </div>
+              </a>
+            </div>
+          );
+        })
+      ) : (
+        <p class="text-white-50" data-reveal>
+          No Prime-Children members yet. Add files under <code>src/content/primeChildren</code>.
+        </p>
+      )}
+    </div>
+  </section>
+
+  {/* 🧠 סקריפט סינון + מיון בצד לקוח */}
+  <script is:inline>
+    (() => {
+      const $ = (s) => document.querySelector(s);
+      const $$ = (s) => Array.from(document.querySelectorAll(s));
+
+      const selSide = $('#filterSide');
+      const selPower = $('#filterPower');
+      const selCat = $('#filterCat');
+      const inp = $('#filterSearch');
+      const sortSel = $('#sortBy');
+      const clearBtn = $('#clearFilters');
+      const countEl = $('#pcCount');
+      const grid = $('#pcGrid');
+
+      function apply() {
+        const side = (selSide?.value || '').toLowerCase();
+        const pow = (selPower?.value || '').toLowerCase();
+        const cat = (selCat?.value || '').toLowerCase();
+        const q = (inp?.value || '').toLowerCase().trim();
+
+        const cards = $$('#pcGrid [data-card]');
+        let shown = 0;
+
+        cards.forEach((el) => {
+          const elSide = el.dataset.side || '';
+          const elPow = el.dataset.power || '';
+          const elTags = el.dataset.tags || '';
+          const idx = el.dataset.index || '';
+
+          const okSide = !side || elSide === side;
+          const okPower = !pow || elPow === pow;
+          const okCat = !cat || elTags.split(' ').includes(cat);
+          const okQ = !q || idx.includes(q);
+
+          const show = okSide && okPower && okCat && okQ;
+          el.classList.toggle('d-none', !show);
+          if (show) shown++;
+        });
+
+        if (countEl) countEl.textContent = String(shown);
+
+        // מיון: נסדר DOM לפי הבחירה
+        const sortBy = (sortSel?.value || 'name-asc');
+        const visible = cards.filter((c) => !c.classList.contains('d-none'));
+        const cmpText = (el, key) => (el.dataset[key] || '').toLowerCase();
+
+        visible.sort((a, b) => {
+          switch (sortBy) {
+            case 'name-asc': return cmpText(a, 'name').localeCompare(cmpText(b, 'name'));
+            case 'name-desc': return cmpText(b, 'name').localeCompare(cmpText(a, 'name'));
+            case 'power-asc': return cmpText(a, 'power').localeCompare(cmpText(b, 'power'));
+            case 'power-desc': return cmpText(b, 'power').localeCompare(cmpText(a, 'power'));
+            default: return 0;
+          }
+        });
+
+        // הזרקה מחדש לפי סדר
+        visible.forEach((el) => grid?.appendChild(el));
+      }
+
+      selSide?.addEventListener('change', apply);
+      selPower?.addEventListener('change', apply);
+      selCat?.addEventListener('change', apply);
+      sortSel?.addEventListener('change', apply);
+      inp?.addEventListener('input', apply);
+      clearBtn?.addEventListener('click', () => {
+        if (selSide) selSide.value = '';
+        if (selPower) selPower.value = '';
+        if (selCat) selCat.value = '';
+        if (sortSel) sortSel.value = 'name-asc';
+        if (inp) inp.value = '';
+        apply();
+      });
+
+      apply();
+    })();
+  </script>
+
+  {/* עיצוב עדין בהשראת האתר הישן */}
+  <style is:global>
+    .pc-gradient-title {
+      background: linear-gradient(90deg, #ffb703, #00d4ff 60%, #a855f7);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      filter: drop-shadow(0 2px 10px rgba(255,183,3,.15));
+    }
+    .pc-glass {
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(6px);
+    }
+    .pc-card { transition: box-shadow .25s ease, transform .25s ease; }
+    .pc-card:hover { box-shadow: 0 16px 40px rgba(0,0,0,.35); transform: translateY(-3px); }
+    .pc-glow { box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+    .pc-thumb { position: relative; overflow: hidden; border-radius: .75rem; }
+    .pc-thumb::after {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(120% 60% at 50% 0%, rgba(255,255,255,.06), transparent 60%);
+      pointer-events: none;
+    }
+  </style>
+</BaseLayout>

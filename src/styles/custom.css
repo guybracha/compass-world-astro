@@ -162,3 +162,74 @@ footer{border-top:1px solid var(--border); color:var(--muted)}
   *{animation:none !important; transition:none !important}
   body::before{animation:none}
 }
+
+:root {
+  /* פלטה */
+  --bg: #0b0d10;
+  --surface: #11141a;
+  --surface-2: #171b23;
+  --brand: #ffb703;
+  --accent: #4cc9f0;
+  --ok: #71f0a8;
+  --text: #e9edf3;
+  --muted: rgba(233, 237, 243, .72);
+
+  /* UI */
+  --radius: 14px;
+  --border: 1px solid rgba(255,255,255,.10);
+  --shadow: 0 14px 40px rgba(0,0,0,.40);
+}
+
+html, body { background: var(--bg); color: var(--text); }
+a { color: inherit; text-decoration: none; }
+
+/* טיפוגרפיה קטנה לשיפור קריאות */
+.text-white-80 { color: var(--muted) !important; }
+.text-white-50 { color: rgba(233, 237, 243, .56) !important; }
+
+/* כפתורים */
+.btn-brand {
+  background: var(--brand); color: #1a1a1a; border: none;
+  border-radius: calc(var(--radius) - 6px);
+}
+.btn-brand:hover { filter: brightness(1.05); }
+
+/* כרטיסים כלליים */
+.card {
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+  border: var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+}
+
+/* באדג'ים */
+.badge.bg-warning {
+  background: var(--brand) !important;
+  color: #1a1a1a !important;
+  font-weight: 800;
+  letter-spacing: .15px;
+}
+
+/* תמונות */
+.img-cover { object-fit: cover; width: 100%; height: 220px; border-radius: var(--radius); }
+
+/* פריטי רמז לביצועים */
+.will-animate { will-change: transform, opacity; }
+
+/* ניווט */
+header .brand { color: var(--brand); }
+.navbar a, header a { color: var(--muted); }
+.navbar a:hover, header nav a:hover { color: var(--text); }
+
+/* טיימליין – בסיס גלובלי קטן */
+.timeline-item {
+  position: relative;
+  overflow: hidden;
+}
+.timeline-item .year-badge {
+  position: absolute; top: 14px; left: 14px; z-index: 2;
+}
+.timeline-item img.parallax {
+  border-radius: calc(var(--radius) - 6px);
+}
