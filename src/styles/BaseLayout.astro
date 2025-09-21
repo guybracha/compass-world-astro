@@ -1,0 +1,28 @@
+<head>
+  <!-- אם הקובץ ב-public -->
+  <link rel="stylesheet" href="/styles/custom.css" />
+
+  <!-- עדיף inline כדי לא להמתין ל-bundle של Astro -->
+  <script is:inline>
+    (function () {
+      const root = document.documentElement;
+
+      // החלת מצב נוכחי מיד (מונע "פלאש" של מצב לא נכון)
+      const apply = (mode) => {
+        root.setAttribute('data-theme', mode);
+        localStorage.setItem('theme', mode);
+      };
+      apply(localStorage.getItem('theme') || 'dark');
+
+      // חכה ל-DOM ואז חבר את הכפתור
+      window.addEventListener('DOMContentLoaded', () => {
+        const btn = document.getElementById('themeToggle');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+          const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          apply(next);
+        });
+      });
+    })();
+  </script>
+</head>

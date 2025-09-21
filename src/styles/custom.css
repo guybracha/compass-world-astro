@@ -1,0 +1,164 @@
+/* =========================
+   Compass World – Colorful Animated Theme
+   Works on top of Bootstrap
+   ========================= */
+
+/* ---------- Palette & tokens ---------- */
+:root{
+  --bg:#0b0e13;
+  --bg2:#10151d;
+  --card:#0f131a;
+  --text:#e8ecf1;
+  --muted:#a8b0bd;
+
+  --c1:#ffb703;  /* gold */
+  --c2:#fb5607;  /* orange */
+  --c3:#ff006e;  /* pink  */
+  --c4:#8338ec;  /* purple*/
+  --c5:#3a86ff;  /* blue  */
+  --c6:#00f5d4;  /* mint  */
+  --c7:#ffd166;  /* sand  */
+  --c8:#06d6a0;  /* teal  */
+
+  --radius:18px;
+  --border:rgba(255,255,255,.1);
+  --shadow:0 12px 32px rgba(0,0,0,.45);
+}
+
+/* ---------- Base ---------- */
+html,body{background:var(--bg);color:var(--text);}
+
+body::before{
+  /* Animated backdrop gradient */
+  content:"";
+  position:fixed; inset:0; z-index:-1;
+  background: radial-gradient(60vmax 60vmax at 15% 10%, rgba(255,182,0,.10), transparent 60%),
+              radial-gradient(50vmax 50vmax at 85% 5%,  rgba(0,245,212,.10), transparent 60%),
+              linear-gradient(120deg, #0b0e13 0%, #0e1220 40%, #0b0e13 100%);
+  animation: bgShift 28s linear infinite;
+  opacity:.9;
+}
+
+@keyframes bgShift{
+  0%{filter:hue-rotate(0deg);}
+  50%{filter:hue-rotate(25deg);}
+  100%{filter:hue-rotate(0deg);}
+}
+
+.container{max-width:1120px}
+
+/* ---------- Navbar ---------- */
+.navbar{
+  backdrop-filter:blur(10px);
+  background: linear-gradient(180deg, rgba(0,0,0,.7), rgba(0,0,0,.35)) !important;
+  border-bottom:1px solid var(--border);
+}
+.navbar .navbar-brand{filter:drop-shadow(0 0 10px rgba(245,180,0,.25))}
+.navbar .nav-link{color:var(--muted) !important; position:relative}
+.navbar .nav-link:hover,
+.navbar .nav-link.active{color:var(--text) !important}
+.navbar .nav-link::after{
+  /* animated underline */
+  content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px;
+  background:linear-gradient(90deg,var(--c3),var(--c5),var(--c6));
+  transform:scaleX(0); transform-origin:left; transition:transform .25s ease;
+  border-radius:2px;
+}
+.navbar .nav-link:hover::after{transform:scaleX(1)}
+
+/* ---------- Hero ---------- */
+.hero{padding:clamp(48px,8vw,96px) 0; text-align:center}
+.hero .eyebrow{color:var(--c6); font-weight:700; letter-spacing:.4px}
+.hero .title{
+  font-weight:900; letter-spacing:.3px;
+  background:linear-gradient(90deg,var(--c2),var(--c3),var(--c5),var(--c6));
+  background-size:200% 100%;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  animation: gradientRun 8s linear infinite;
+}
+.hero .subtitle{color:var(--muted)}
+@keyframes gradientRun{to{background-position:200% 0}}
+
+/* ---------- Buttons ---------- */
+.btn{border-radius:var(--radius)}
+.btn-brand{
+  background:linear-gradient(90deg,var(--c1),var(--c2)); border:none; color:#000; font-weight:800;
+  box-shadow:0 8px 18px rgba(251,86,7,.25);
+  transition:transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn-brand:hover{transform:translateY(-2px); filter:brightness(.95)}
+.btn-ghost{
+  background:transparent; color:var(--text);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover{border-color:var(--text)}
+
+/* ---------- Sections ---------- */
+.section-title{font-size:28px; margin-bottom:16px}
+
+/* ---------- Cards (gradient border + hover lift + tilt-ready) ---------- */
+.card{
+  background:var(--card);
+  border:1px solid transparent;
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  /* gradient border trick */
+  background-image:
+    linear-gradient(var(--card),var(--card)),
+    linear-gradient(120deg,var(--c3),var(--c5),var(--c6));
+  background-origin:border-box;
+  background-clip:padding-box, border-box;
+  transition:transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  animation:borderPan 16s linear infinite; animation-play-state:paused;
+}
+.card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 18px 40px rgba(0,0,0,.55);
+  animation-play-state:running;
+}
+@keyframes borderPan{
+  0%{background-image:
+       linear-gradient(var(--card),var(--card)),
+       linear-gradient(120deg,var(--c3),var(--c5),var(--c6))}
+  50%{background-image:
+       linear-gradient(var(--card),var(--card)),
+       linear-gradient(120deg,var(--c2),var(--c4),var(--c5))}
+  100%{background-image:
+       linear-gradient(var(--card),var(--card)),
+       linear-gradient(120deg,var(--c3),var(--c5),var(--c6))}
+}
+.card .card-title{color:var(--text)}
+.card .card-text{color:var(--muted)}
+
+/* Optional image zoom inside cards */
+.card img{transition:transform .35s ease; border-radius:calc(var(--radius) - 6px)}
+.card:hover img{transform:scale(1.03)}
+
+/* ---------- “Glass” utility ---------- */
+.glass{
+  backdrop-filter:blur(8px);
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+
+/* ---------- Chips / tags ---------- */
+.chip{
+  display:inline-flex; align-items:center; gap:.35rem;
+  font-size:.8rem; padding:.25rem .6rem; border-radius:999px;
+  color:#000; background:linear-gradient(90deg,var(--c7),var(--c1));
+}
+.chip--alt{background:linear-gradient(90deg,var(--c6),var(--c5)); color:#04121a}
+
+/* ---------- Footer ---------- */
+footer{border-top:1px solid var(--border); color:var(--muted)}
+
+/* ---------- Reveal baseline (עוזר ל-GSAP, עובד גם בלי) ---------- */
+[data-reveal]{opacity:0; transform:translateY(20px)}
+.no-js [data-reveal]{opacity:1; transform:none}
+
+/* ---------- Accessibility: respect reduced motion ---------- */
+@media (prefers-reduced-motion: reduce){
+  *{animation:none !important; transition:none !important}
+  body::before{animation:none}
+}

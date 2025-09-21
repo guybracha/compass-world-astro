@@ -1,0 +1,19 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, getEntryBySlug } from 'astro:content';
+
+const entry = await getEntryBySlug('primeChildren', 'overview');
+const { Content, data } = entry ? await entry.render() : { Content: null, data: { title: 'Prime-Children Overview' } };
+---
+<BaseLayout title={data.title || 'Prime-Children Overview'}>
+  <section class="container py-4">
+    <a class="text-white-50" href="/prime-children/">← Back to members</a>
+    <div class="row mt-3 g-4">
+      {data.image && <div class="col-lg-5"><img src={data.image} alt={data.title} class="img-fluid rounded-3 shadow-sm" /></div>}
+      <div class={data.image ? 'col-lg-7' : 'col-12'}>
+        <h1 class="h3">{data.title}</h1>
+        {Content ? <article class="mt-2"><Content /></article> : <p>No overview yet.</p>}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,30 +1,34 @@
 import React, { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-gsap.registerPlugin(ScrollTrigger);
 
 export default function Hero() {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (typeof window === "undefined" || !ref.current) return;
 
-    const q = gsap.utils.selector(ref);
-    gsap.set(q(".hero-title, .hero-sub, .hero-cta"), { opacity: 0, y: 20 });
-    gsap.to(q(".hero-title"), { opacity: 1, y: 0, duration: 0.7, ease: "power2.out", delay: 0.05 });
-    gsap.to(q(".hero-sub"),   { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.25 });
-    gsap.to(q(".hero-cta"),   { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.4, stagger: 0.08 });
+    (async () => {
+      const gsapMod = await import("gsap");
+      const gsap = gsapMod.default || gsapMod; // תמיכה ב־ES/CJS
+      const { ScrollTrigger } = await import("gsap/ScrollTrigger");
+      gsap.registerPlugin(ScrollTrigger);
 
-    // כרטיסים (סטאגר) — כל קישור כרטיס בדף
-    ScrollTrigger.batch(".card", {
-      start: "top 85%",
-      onEnter: (els) => {
-        gsap.fromTo(els, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", stagger: 0.08 });
-      }
-    });
+      const q = (sel: string) => ref.current!.querySelectorAll(sel);
+      gsap.set(q(".hero-title, .hero-sub, .hero-cta"), { opacity: 0, y: 20 });
+      gsap.to(q(".hero-title"), { opacity: 1, y: 0, duration: 0.7, ease: "power2.out", delay: 0.05 });
+      gsap.to(q(".hero-sub"),   { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.25 });
+      gsap.to(q(".hero-cta"),   { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", delay: 0.4, stagger: 0.08 });
+
+      ScrollTrigger.batch(".card", {
+        start: "top 85%",
+        onEnter: (els) => {
+          gsap.fromTo(els, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.6, ease: "power2.out", stagger: 0.08 });
+        },
+      });
+    })();
 
     return () => {
-      ScrollTrigger.getAll().forEach(st => st.kill());
+      // מנקה טריגרים אם תרצה:
+      // (await import("gsap/ScrollTrigger")).ScrollTrigger.getAll().forEach(st => st.kill());
     };
   }, []);
 

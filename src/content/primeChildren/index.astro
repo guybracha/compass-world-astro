@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const all = await getCollection('primeChildren');
+// נציג רק חברים (לא overview)
+const members = all.filter((e) => e.data.kind !== 'overview');
+
+const uniqueTags = Array.from(
+  new Set(members.flatMap((m) => (m.data.tags || []).map((t) => t.toLowerCase())))
+).sort();
+---
+
+<BaseLayout title="Prime-Children" description="Notable members of the Prime-Children">
+  <section class="container py-4">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+      <h1 class="h3 m-0">Prime-Children</h1>
+      <a href="/prime-children/overview/" class="btn btn-outline-light btn-sm">Overview</a>
+    </div>
+
+    <!-- Controls -->
+    <div class="row g-3 align-items-center mb-3">
+      <div class="col-12 col-md-6">
+        <input id="search" class="form-control" type="search" placeholder="Search members…" aria-label="Search members">
+      </div>
+      <div class="col-12 col-md">
+        <div class="d-flex flex-wrap gap-2" id="tagBar">
+          <button class="btn btn-sm btn-secondary" data-tag="*">All</button>
+          {uniqueTags.map((t) => (
+            <button class="btn btn-sm btn-outline-secondary" data-tag={t}>{t}</button>
+          ))}
+          <div class="vr mx-2 d-none d-md-block"></div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="checkbox" id="hasImage">
+            <label class="form-check-label" for="hasImage">With image</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div id="grid" class="row g-4">
+      {members.map((m) => {
+        const title = m.data.name || m.data.title;
+        const slug = m.slug;
+        const img = m.data.image;
+        const summary = m.data.summary || '';
+        const tags = (m.data.tags || []).join(' ').toLowerCase();
+        return (
+          <div class="col-12 col-sm-6 col-lg-4">
+            <article
+              class="card h-100 p-3"
+              data-title={(title || '').toLowerCase()}
+              data-summary={summary.toLowerCase()}
+              data-tags={tags}
+              data-hasimage={img ? '1' : '0'}
+            >
+              {img ? <img src={img} alt={title} class="img-fluid rounded-3 mb-2" loading="lazy" /> : null}
+              <h2 class="h5 m-0"><a href={`/prime-children/${slug}/`} class="stretched-link text-white">{title}</a></h2>
+              {summary && <p class="text-white-50 mt-2 mb-0">{summary}</p>}
+              {(m.data.tags?.length)
+                ? <small class="text-white-50 d-block mt-2">#{(m.data.tags || []).join(' #')}</small>
+                : null}
+            </article>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <script>
+    // וונילה JS לפילטרים
+    const q = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const search = document.getElementById('search');
+    const tagBar = document.getElementById('tagBar');
+    const hasImage = document.getElementById('hasImage');
+    let activeTag = '*';
+
+    function applyFilters() {
+      const term = (search.value || '').trim().toLowerCase();
+      const wantImg = hasImage.checked;
+      q('#grid .card').forEach(card => {
+        const t = card.dataset.title || '';
+        const s = card.dataset.summary || '';
+        const tags = card.dataset.tags || '';
+        const img = card.dataset.hasimage === '1';
+
+        const matchText = !term || (t.includes(term) || s.includes(term) || tags.includes(term));
+        const matchTag = (activeTag === '*') || tags.split(/\s+/).includes(activeTag);
+        const matchImg = !wantImg || img;
+
+        card.parentElement.style.display = (matchText && matchTag && matchImg) ? '' : 'none';
+      });
+    }
+
+    search.addEventListener('input', applyFilters);
+    hasImage.addEventListener('change', applyFilters);
+    tagBar.addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-tag]');
+      if (!btn) return;
+      activeTag = btn.dataset.tag;
+      q('#tagBar button').forEach(b => b.classList.toggle('btn-secondary', b===btn));
+      q('#tagBar button').forEach(b => b.classList.toggle('btn-outline-secondary', b!==btn));
+      applyFilters();
+    });
+
+    // ברירת מחדל: All פעיל
+    const first = tagBar.querySelector('button[data-tag="*"]');
+    if (first) {
+      first.classList.remove('btn-outline-secondary');
+      first.classList.add('btn-secondary');
+    }
+  </script>
+</BaseLayout>

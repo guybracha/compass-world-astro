@@ -23,6 +23,14 @@ const { title = "Compass World", description = "A universe of ideas by Guy Brach
       /* רמיזות ביצועים */
       .will-animate { will-change: transform, opacity; }
     </style>
+    <link rel="stylesheet" href="/styles/custom.css" />
+
+    <!-- GSAP (UMD) + ScrollTrigger -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
+
+    <!-- קובץ האנימציות שלך (סטטי מ-public) -->
+    <script src="/scripts/gsap-init.js" defer></script>
   </head>
   <body>
     <header class="py-4 border-bottom border-secondary-subtle">

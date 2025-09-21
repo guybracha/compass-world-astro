@@ -10,11 +10,15 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^4.3.5",
+    "@astrojs/react": "^4.3.1",
     "@astrojs/sitemap": "^3.6.0",
     "astro": "^5.13.9",
+    "cheerio": "^1.1.2",
     "gsap": "^3.13.0",
+    "json5": "^2.2.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "slugify": "^1.6.6",
     "zod": "^4.1.11"
   },
   "devDependencies": {

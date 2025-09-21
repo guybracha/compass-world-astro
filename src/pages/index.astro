@@ -1,19 +1,28 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Hero from '../components/Hero.tsx';
-import ProjectCard from '../components/ProjectCard.astro';
 ---
-<BaseLayout title="Compass World | Home" description="A universe of ideas by Guy Bracha">
-  <section class="container py-5">
-    <Hero client:load />  <!-- GSAP רץ בקליינט -->
-  </section>
 
-  <section class="container py-4">
-    <h2 class="h3 mb-3">Featured Projects</h2>
-    <div class="row g-4">
-      <ProjectCard title="Compass World (Legacy)" href="https://guybracha.github.io/compass-world/" tag="HTML/CSS/JS" />
-      <ProjectCard title="Comixiad" href="https://comixiad.com/" tag="React/Node" />
-      <ProjectCard title="Karina" href="https://karina.co.il/" tag="React/Firebase" />
+<BaseLayout title="Compass World | Home">
+  <header class="hero container">
+    <div class="eyebrow">Paladin</div>
+    <h1 class="title">Compass World</h1>
+    <p class="subtitle">A living sci-fi/fantasy universe by Guy Bracha</p>
+    <div class="mt-3 d-flex justify-content-center gap-2">
+      <a class="btn btn-brand" href="/prime-children/">Characters</a>
+      <a class="btn btn-ghost" href="/chronology/">Chronology</a>
+    </div>
+  </header>
+
+  <section class="container my-5">
+    <h2 class="section-title">Featured Projects</h2>
+    <div class="row g-3">
+      <div class="col-12 col-md-4">
+        <article class="card p-3">
+          <h3 class="card-title h5 mb-1">Project One</h3>
+          <p class="card-text">Short teaser about the project.</p>
+        </article>
+      </div>
+      <!-- שכפל כרטיסים נוספים -->
     </div>
   </section>
 </BaseLayout>
