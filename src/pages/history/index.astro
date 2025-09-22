@@ -1,8 +1,32 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
+
 const list = await getCollection('history');
-const sorted = [...list].sort((a,b) => a.data.year.localeCompare(b.data.year));
+
+// ממיר "750BC", "200 CE", "c. 150 bc", "700–600 BC" וכו' למספר; BC שלילי
+function yearKey(y: unknown) {
+  if (typeof y === 'number') return y;
+  const s = String(y ?? '').trim().toLowerCase();
+  if (!s) return Number.POSITIVE_INFINITY;
+
+  // האם BC/BCE?
+  const isBC = /\b(?:bc|bce)\b/.test(s);
+
+  // קח את המספר הראשון (בתווך/טווח ניקח את ההתחלה)
+  const m = s.match(/-?\d{1,4}/);
+  if (!m) return Number.POSITIVE_INFINITY;
+
+  const n = parseInt(m[0], 10);
+  return isBC ? -n : n;
+}
+
+const sorted = [...list].sort((a, b) => {
+  const ka = yearKey(a.data.year);
+  const kb = yearKey(b.data.year);
+  if (ka !== kb) return ka - kb;        // קטן יותר קודם (BC קודם)
+  return a.slug.localeCompare(b.slug);  // שובר שוויון יציב
+});
 ---
 <BaseLayout title="Chronology | Compass World">
   <section class="container py-4">

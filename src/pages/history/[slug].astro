@@ -3,6 +3,29 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getEntryBySlug, getCollection } from "astro:content";
 
+export const prerender = true;
+
+// תמיכה בתת-נתיב (GitHub Pages וכו’)
+const BASE = import.meta.env.BASE_URL || "/";
+const withBase = (p = "") =>
+  p && !p.startsWith("http")
+    ? `${BASE.replace(/\/$/, "")}${p.startsWith("/") ? p : `/${p}`}`
+    : p || "";
+
+// כותרת יפה מה-year או מה-slug אם חסר
+function prettyYear(slug, dataYear) {
+  const y = String(dataYear ?? "").trim();
+  if (y) return y;
+  const core = String(slug).replace(/^\d{1,4}-/, "");
+  const parts = core.split("-").filter(Boolean);
+  if (!parts.length) return slug;
+  const last = parts[parts.length - 1];
+  let era = "";
+  if (/^(bc|bce|ad|ce)$/i.test(last)) { era = last.toUpperCase(); parts.pop(); }
+  const label = parts.join("–");
+  return era ? `${label} ${era}` : label;
+}
+
 export async function getStaticPaths() {
   const entries = await getCollection("history");
   return entries.map((e) => ({ params: { slug: e.slug } }));
@@ -10,67 +33,61 @@ export async function getStaticPaths() {
 
 const { slug } = Astro.params;
 const entry = await getEntryBySlug("history", slug);
-
 if (!entry) {
   return new Response(`Event not found: ${slug}`, { status: 404 });
 }
 
 const { Content, data } = await entry.render();
-const year = data?.year ?? slug;
+const yearLabel = prettyYear(slug, data?.year);
 const desc = data?.description ?? "";
-const image = data?.image ?? null;
+
+const LINK_BACK = withBase("/history/");
+const PLACEHOLDER = withBase("/assets/placeholders/history.webp");
 ---
-
-<BaseLayout title={`${year} | Chronology`} class="dark">
+<BaseLayout title={`${yearLabel} | Chronology`} class="dark">
   <section class="container py-4">
-    <a href="/history/" class="text-white-50">← Back</a>
+    <a href={LINK_BACK} class="text-white-50">← Back</a>
 
-    <div class="row mt-3 g-4">
-      <div class="col-lg-5">
-        {image && (
-          <img
-          src={image || "/assets/placeholders/history.webp"}
-          alt={year}
-          class="img-fluid rounded-3 shadow-sm will-animate"
-          onError="this.onerror=null;this.src='/assets/placeholders/history.webp';"
-        />
-        )}
-      </div>
+    <header class="text-center my-3">
+      <h1 class="h3 mb-2">{yearLabel}</h1>
+      {desc && <p class="text-white-50 m-0">{desc}</p>}
+    </header>
 
-      <div class="col-lg-7">
-        <h1 class="h3 mb-2 will-animate">{year}</h1>
-        {desc && <p class="text-white-50 mb-3 will-animate">{desc}</p>}
-        <article class="prose text-white-80 will-animate">
-          <Content />
-        </article>
-      </div>
-    </div>
+    <!-- מרנדרים את תוכן ה-MDX כפי שהוא -->
+    <article class="prose text-white-80 mx-auto" style="max-width: 860px;">
+      <Content />
+    </article>
   </section>
 
   <style>
-    .will-animate {
-      opacity: 0;
-      transform: translateY(10px);
-      transition: opacity .6s ease, transform .6s ease;
-    }
-    .will-animate.in {
-      opacity: 1;
-      transform: none;
-    }
+    .prose img { display:block; max-width:100%; height:auto; }
   </style>
 
-  <script>
-    // מפעיל אנימציית fade-in/slide-up לתמונה + טקסט
-    const els = document.querySelectorAll('.will-animate');
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('in');
-          io.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.1 });
+  <script is:inline>
+    // מעדכן את כל התמונות שבתוך ה-MDX: BASE_URL, מחלקות, lazy, ו-fallback
+    (() => {
+      const BASE = {JSON.stringify(BASE)};
+      const PLACEHOLDER = {JSON.stringify(PLACEHOLDER)};
+      const root = BASE.replace(/\/$/, "");
 
-    els.forEach(el => io.observe(el));
+      document.querySelectorAll('.prose img').forEach((img) => {
+        // מחלקות רספונסיביות
+        img.classList.add('img-fluid', 'rounded-3', 'shadow-sm', 'my-3', 'w-100');
+        // lazy
+        img.loading = 'lazy';
+
+        // הוספת BASE_URL אם זה נתיב יחסי/מוחלט מקומי
+        const src = img.getAttribute('src') || '';
+        if (src && !/^https?:\/\//i.test(src)) {
+          const path = src.startsWith('/') ? src : `/${src}`;
+          img.src = `${root}${path}`;
+        }
+
+        // fallback במקרה של 404
+        img.addEventListener('error', () => {
+          img.src = PLACEHOLDER;
+        }, { once: true });
+      });
+    })();
   </script>
 </BaseLayout>
