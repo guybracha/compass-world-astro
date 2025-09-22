@@ -1,22 +1,53 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import { getCollection, getEntryBySlug } from 'astro:content';
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getEntryBySlug, getCollection } from "astro:content";
 
 export const prerender = true;
+
+// בונים את רשימת הנתיבים הסטטיים (מונע 404 בזמן build)
 export async function getStaticPaths() {
-  const entries = await getCollection('villains');
-  return entries.map(({ slug }) => ({ params: { slug } }));
+  const villains = await getCollection("villains"); // שם הקולקציה בקונפיג
+  return villains.map(({ slug }) => ({ params: { slug } }));
 }
 
-const entry = await getEntryBySlug('villains', Astro.params.slug!);
-if (!entry) throw new Error('Villain not found');
-const { Content, data } = await entry.render();
+const { slug } = Astro.params;
+
+// שולפים את הרשומה בבטחה
+const entry = await getEntryBySlug("villains", slug);
+
+// אם לא נמצאה רשומה — הפניה ל־404 (או החזר טקסט מותאם)
+if (!entry) {
+  return Astro.redirect("/404");
+}
+
+// הגנות + ברירות מחדל
+const data = entry.data ?? {};
+const pageTitle = data.title ?? slug?.replace(/-/g, " ") ?? "Unknown Villain";
+const description = data.description ?? "";
+const image = data.image ?? "/legacy/gallery/compass-alliance-artwork.webp";
 ---
-<BaseLayout title={`${data.title} | Villains`} description={data.summary}>
-  <section class="container py-5" data-reveal>
-    {data.image && <img src={data.image} alt={data.title} class="img-fluid rounded-3 mb-4 parallax" />}
-    <h1 class="h3">{data.title}</h1>
-    {data.org && <div class="text-white-50 mb-2">Organization: {data.org}</div>}
-    <article class="text-white-80"><Content /></article>
-  </section>
+
+<BaseLayout
+  title={`Compass World | ${pageTitle}`}
+  description={description}
+  image={image}
+>
+  <article class="container">
+    <header class="my-4">
+      <h1 class="display-5">{pageTitle}</h1>
+      {description && <p class="lead">{description}</p>}
+    </header>
+
+    {image && (
+      <img
+        src={image}
+        alt={pageTitle}
+        class="img-fluid rounded mb-4"
+        loading="eager"
+      />
+    )}
+
+    <!-- גוף התוכן מה-MD/MDX -->
+    <Fragment set:html={entry.body} />
+  </article>
 </BaseLayout>

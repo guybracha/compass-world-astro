@@ -5,8 +5,16 @@ import SEO from "../components/SEO.astro";
 const {
   title = "Compass World",
   description = "A universe of ideas by Guy Bracha",
-  image = "/legacy/gallery/compass-alliance-artwork.webp" // תמונת OG כללית
+  image = "/legacy/gallery/compass-alliance-artwork.webp"
 } = Astro.props;
+
+// BASE תמיד מסתיים ב־"/"
+const BASE = import.meta.env.BASE_URL || "/";
+// מוסיף BASE לכל נתיב שאינו מתחיל ב-http/https
+const withBase = (p = "") =>
+  p && !/^https?:\/\//i.test(p)
+    ? `${BASE}${p.replace(/^\/+/, "")}` // מונע "//"
+    : p;
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -14,7 +22,6 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- SEO (כותרת, תיאור, OG, טוויטר, קנוניקל, JSON-LD) -->
     <SEO
       title={title}
       description={description}
@@ -24,7 +31,6 @@ const {
       twitter={{ card: "summary_large_image", site: "@GuyBracha" }}
     />
 
-    <!-- הרחבות ייעודיות לעמודים (OG נוספים/JSON-LD נוסף וכו') -->
     <slot name="head" />
 
     <!-- Fonts -->
@@ -42,101 +48,45 @@ const {
       .card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
       .img-cover { object-fit: cover; width: 100%; height: 200px; border-radius: 0.75rem; }
       .will-animate { will-change: transform, opacity; }
-
-      /* ---- Compass World animated brand ---- */
-      .navbar-brand.brand-anim {
-        display: inline-block;
-        line-height: 1;
-        animation: cw-pop .6s ease-out both;              /* כניסה חלקה */
-      }
-      .cw-word{
-        position: relative;
-        display: inline-block;
-        background: linear-gradient(90deg,#ffffff, var(--brand), #00d4ff 60%, #a855f7);
-        background-size: 200% auto;
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;                                /* טקסט עם גרדיאנט */
-        animation: cw-shine 6s linear infinite;            /* שיין איטי */
-        letter-spacing: .2px;
-      }
-      .cw-accent{
-        filter: drop-shadow(0 0 10px rgba(255,183,3,.25)); /* זוהר עדין ל-World */
-        animation-delay: .6s;                               /* טיפה מאוחר יותר */
-      }
-      /* הובר – להאיץ את השיין ולהרים טיפונת את הטקסט */
-      .navbar-brand.brand-anim:hover .cw-word{
-        animation-duration: 2.4s;
-        transform: translateY(-1px);
-        transition: transform .2s ease;
-      }
-      /* keyframes */
-      @keyframes cw-shine{
-        0%   { background-position: 0% 50%; }
-        100% { background-position: 200% 50%; }
-      }
-      @keyframes cw-pop{
-        0%   { opacity: 0; transform: translateY(-6px) scale(.98); }
-        100% { opacity: 1; transform: none; }
-      }
+      .navbar-brand.brand-anim { display: inline-block; line-height: 1; animation: cw-pop .6s ease-out both; }
+      .cw-word{ position: relative; display: inline-block; background: linear-gradient(90deg,#ffffff, var(--brand), #00d4ff 60%, #a855f7); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cw-shine 6s linear infinite; letter-spacing: .2px; }
+      .cw-accent{ filter: drop-shadow(0 0 10px rgba(255,183,3,.25)); animation-delay: .6s; }
+      .navbar-brand.brand-anim:hover .cw-word{ animation-duration: 2.4s; transform: translateY(-1px); transition: transform .2s ease; }
+      @keyframes cw-shine{ 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
+      @keyframes cw-pop{ 0%{opacity:0;transform:translateY(-6px) scale(.98)} 100%{opacity:1;transform:none} }
     </style>
 
-    <!-- GSAP (UMD) + ScrollTrigger -->
+    <!-- GSAP (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
-    <!-- קובץ האנימציות שלך (סטטי מ-public) -->
-    <script src="/scripts/gsap-init.js" defer></script>
+
+    <!-- הקובץ המקומי מה-public עם BASE -->
+    <script src={withBase("/scripts/gsap-init.js")} defer></script>
   </head>
   <body>
     <header class="border-bottom border-secondary-subtle">
       <nav class="navbar navbar-expand-lg navbar-dark" style="background: transparent;">
         <div class="container">
           <!-- Brand -->
-          <a href="/" class="navbar-brand fw-bold brand-anim" aria-label="Compass World">
+          <a href={withBase("/")} class="navbar-brand fw-bold brand-anim" aria-label="Compass World">
             <span class="cw-word">Compass</span>
             <span class="cw-word cw-accent">World</span>
           </a>
 
-          <!-- Toggler -->
-          <button
-            class="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNav"
-            aria-controls="mainNav"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
 
-          <!-- Collapsible links -->
           <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto gap-lg-2">
-              <li class="nav-item">
-                <a class="nav-link" href="/comics/">Comics</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white-50" href="/characters/">Characters</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white-50" href="/history/">History</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white-50" href="/atlas/">Atlas</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white-50" href="/prime-children/">Prime-Children</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white-50" href="/villains/">Villains</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white-50" href="/gallery/">Gallery</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white-50" href="/about/">About</a>
-              </li>
+              <li class="nav-item"><a class="nav-link" href={withBase("/comics/")}>Comics</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/characters/")}>Characters</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/history/")}>History</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/atlas/")}>Atlas</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/prime-children/")}>Prime-Children</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/villains/")}>Villains</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/gallery/")}>Gallery</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/about/")}>About</a></li>
             </ul>
           </div>
         </div>
@@ -155,7 +105,7 @@ const {
       </div>
     </footer>
 
-    <!-- Bootstrap JS -->
+    <!-- Bootstrap JS (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

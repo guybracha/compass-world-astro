@@ -73,16 +73,16 @@ const primeChildren = defineCollection({
 
 /** ✅ חדש: Villains – הן ארגונים (org) והן דמויות (leader/member) */
 const villains = defineCollection({
-  type: 'content',
+  type: "content",
   schema: z.object({
-    title: z.string(),                       // שם ארגון/כותרת
-    kind: z.enum(['org','leader','member']).default('member'),
-    org: z.string().optional(),              // אם זו דמות — לאיזה ארגון שייכת
-    leaders: z.array(z.string()).optional(), // אם זה org — שמות מנהיגים
-    focus: z.string().optional(),
-    image: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).default([]),
+    title: z.string().min(1, "Missing title"), // כותרת תמיד נדרשת
+    kind: z.enum(["org", "leader", "member"]).default("member"),
+    org: z.string().optional(),                // אם זו דמות — שייכות לארגון
+    leaders: z.array(z.string()).optional(),   // אם זה org — רשימת מנהיגים
+    focus: z.string().optional(),              // דגש/תחום פעילות
+    image: z.string().optional(),              // תמונה ל־OG ולדף
+    summary: z.string().optional(),            // תקציר לתצוגה ברשימות
+    tags: z.array(z.string()).default([]),     // תגיות (ברירת מחדל: [])
   }),
 });
 
