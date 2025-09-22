@@ -8,13 +8,18 @@ const {
   image = "/legacy/gallery/compass-alliance-artwork.webp"
 } = Astro.props;
 
-// BASE תמיד מסתיים ב־"/"
-const BASE = import.meta.env.BASE_URL || "/";
-// מוסיף BASE לכל נתיב שאינו מתחיל ב-http/https
-const withBase = (p = "") =>
-  p && !/^https?:\/\//i.test(p)
-    ? `${BASE}${p.replace(/^\/+/, "")}` // מונע "//"
-    : p;
+// נרמול BASE: תמיד יסתיים ב"/"
+const RAW_BASE = import.meta.env.BASE_URL ?? "/";
+const BASE = RAW_BASE.endsWith("/") ? RAW_BASE : `${RAW_BASE}/`;
+
+// פונקציה לשרשור נתיבים פנימיים עם BASE (גם בפריוויו/פרודקשן)
+const withBase = (p = "") => {
+  if (!p) return BASE;
+  // אל תשנה קישורים חיצוניים/סכימות אחרות
+  if (/^(https?:)?\/\//i.test(p) || /^mailto:|^tel:/i.test(p)) return p;
+  const clean = p.replace(/^\/+/, "");       // מסיר "/" מיותרים בתחילת הנתיב
+  return `${BASE}${clean}`.replace(/\/{2,}/g, "/"); // מונע "//"
+};
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -22,6 +27,7 @@ const withBase = (p = "") =>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- SEO (כותרת, תיאור, OG/Twitter, קנוניקל, JSON-LD) -->
     <SEO
       title={title}
       description={description}
@@ -31,10 +37,12 @@ const withBase = (p = "") =>
       twitter={{ card: "summary_large_image", site: "@GuyBracha" }}
     />
 
+    <!-- הרחבות ייעודיות לעמודים (OG/JSON-LD נוספים וכו') -->
     <slot name="head" />
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
@@ -48,6 +56,8 @@ const withBase = (p = "") =>
       .card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
       .img-cover { object-fit: cover; width: 100%; height: 200px; border-radius: 0.75rem; }
       .will-animate { will-change: transform, opacity; }
+
+      /* ---- Compass World animated brand ---- */
       .navbar-brand.brand-anim { display: inline-block; line-height: 1; animation: cw-pop .6s ease-out both; }
       .cw-word{ position: relative; display: inline-block; background: linear-gradient(90deg,#ffffff, var(--brand), #00d4ff 60%, #a855f7); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cw-shine 6s linear infinite; letter-spacing: .2px; }
       .cw-accent{ filter: drop-shadow(0 0 10px rgba(255,183,3,.25)); animation-delay: .6s; }
@@ -60,20 +70,21 @@ const withBase = (p = "") =>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
 
-    <!-- הקובץ המקומי מה-public עם BASE -->
+    <!-- סקריפט מקומי (public) עם BASE -->
     <script src={withBase("/scripts/gsap-init.js")} defer></script>
+
     {import.meta.env.MODE === "production" && (
-        <>
-          <!-- Google tag (gtag.js) -->
-          <script async src="https://www.googletagmanager.com/gtag/js?id=G-XQXW42MC8Z"></script>
-          <script>
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-XQXW42MC8Z');
-          </script>
-        </>
-      )}
+      <>
+        <!-- Google tag (gtag.js) -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XQXW42MC8Z"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-XQXW42MC8Z');
+        </script>
+      </>
+    )}
   </head>
   <body>
     <header class="border-bottom border-secondary-subtle">
@@ -85,7 +96,15 @@ const withBase = (p = "") =>
             <span class="cw-word cw-accent">World</span>
           </a>
 
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#mainNav"
+            aria-controls="mainNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
             <span class="navbar-toggler-icon"></span>
           </button>
 
