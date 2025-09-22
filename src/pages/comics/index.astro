@@ -1,0 +1,82 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { getCollection } from "astro:content";
+
+export const prerender = true;
+
+const PLACEHOLDER = "/images/gallery-placeholder.svg";
+
+// תמיכה ב־BASE_URL (למשל /compass-world-astro/)
+const BASE = import.meta.env.BASE_URL || "/";
+const withBase = (p = "") =>
+  p.startsWith("http")
+    ? p
+    : `${BASE.replace(/\/$/, "")}${p.startsWith("/") ? p : `/${p}`}`;
+
+const comics = (await getCollection("comics"))
+  .slice()
+  .sort((a, b) => {
+    // מיון יציב: קודם לפי number (אם יש), ואז לפי slug
+    const na = Number(a.data.number ?? 0);
+    const nb = Number(b.data.number ?? 0);
+    const byNum = nb - na;
+    return byNum !== 0 ? byNum : a.slug.localeCompare(b.slug);
+  });
+---
+<BaseLayout title="Compass World | Comics" class="dark">
+  <section class="container-xxl py-5">
+    <header class="mb-4 text-center">
+      <h1 class="display-5 fw-bold">Comics</h1>
+      <p class="text-secondary m-0">Explore the Compass World through episodic comics.</p>
+    </header>
+
+    <div class="row g-4">
+      {comics.map(({ slug, data }) => {
+        const cover = withBase(data.cover || PLACEHOLDER);
+        const placeholder = withBase(PLACEHOLDER);
+        return (
+          <div class="col-12 col-sm-6 col-lg-4">
+            <a
+              href={withBase(`/comics/${slug}/`)}
+              class="text-decoration-none card h-100 bg-dark border-0 shadow-sm"
+            >
+              <img
+                src={cover}
+                alt={`Cover — ${data.title}`}
+                class="card-img-top object-cover"
+                loading="lazy"
+                decoding="async"
+                width="1200"
+                height="675"
+                sizes="(max-width: 576px) 100vw, (max-width: 992px) 50vw, 33vw"
+                onerror={`this.onerror=null;this.src='${placeholder}';`}
+              />
+              <div class="card-body">
+                {typeof data.number !== "undefined" && (
+                  <div class="small text-warning fw-semibold mb-1">Episode #{data.number}</div>
+                )}
+                <h2 class="h5 text-white mb-2">{data.title}</h2>
+                {data.summary && <p class="text-secondary small mb-2">{data.summary}</p>}
+                {Array.isArray(data.tags) && data.tags.length > 0 && (
+                  <div class="d-flex flex-wrap gap-2">
+                    {data.tags.slice(0, 3).map((t) => (
+                      <span class="badge bg-secondary-subtle text-secondary-emphasis">{t}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div class="card-footer bg-transparent border-0 pt-0 pb-3">
+                <span class="btn btn-brand btn-sm">Read</span>
+              </div>
+            </a>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+
+  <style>
+    /* יחס תמונה עקבי גם אם המקור לא 16:9 */
+    .object-cover { object-fit: cover; aspect-ratio: 16/9; }
+  </style>
+</BaseLayout>

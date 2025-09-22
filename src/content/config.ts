@@ -97,6 +97,20 @@ const history = defineCollection({
   }),
 });
 
+const comics = defineCollection({
+  type: "content",
+  schema: z.object({
+    title: z.string(),
+    number: z.number().int().positive().describe("מספר הפרק"),
+    date: z.string().optional(), // YYYY-MM-DD
+    cover: z.string().describe("נתיב לתמונת קוואר (public/...)"),
+    summary: z.string().min(10),
+    tags: z.array(z.string()).default([]),
+    // רשימת עמודים/תמונות הפרק – נתיבים ל-public (למשל /comics/ep-001/001.webp)
+    pages: z.array(z.string()).min(1),
+  }),
+});
+
 export const collections = {
-  characters, atlas, ideas, pages, gallery, primeChildren, villains, history,
+  characters, atlas, ideas, pages, gallery, primeChildren, villains, history, comics,
 };

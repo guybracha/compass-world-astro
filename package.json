@@ -9,7 +9,6 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.3.5",
     "@astrojs/react": "^4.3.1",
     "@astrojs/sitemap": "^3.6.0",
     "astro": "^5.13.9",
@@ -22,6 +21,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@astrojs/mdx": "^4.3.6",
     "@types/gsap": "^3.0.0"
   }
 }
