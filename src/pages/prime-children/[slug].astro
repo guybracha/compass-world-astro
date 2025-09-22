@@ -7,14 +7,54 @@ export const prerender = true;
 
 const { slug } = Astro.params;
 
-// ✅ תמיכה בתת-נתיב (GitHub Pages)
-const BASE = import.meta.env.BASE_URL || "/";
-const withBase = (p = "") =>
-  p && !/^https?:\/\//i.test(p)
-    ? `${BASE}${String(p).replace(/^\/+/, "")}`
-    : p || "";
+/** =========================
+ *  BASE & URL helpers
+ *  ========================= */
 
-// יצירת נתיבי SSG (מדלגים על overview)
+// תמיד מסתיים ב־"/"
+const RAW_BASE = import.meta.env.BASE_URL || "/";
+const BASE = RAW_BASE.endsWith("/") ? RAW_BASE : `${RAW_BASE}/`;
+
+/** withBase:
+ * - לא נוגע ב־https://  //cdn  data:  mailto:  tel:
+ * - לא מוסיף BASE אם הוא כבר קיים בתחילת המחרוזת
+ * - מצמיד BASE לנתיב שמתחיל ב־"/" או יחסי
+ */
+const withBase = (p: unknown = ""): string => {
+  const s = String(p || "");
+  if (!s) return BASE;
+
+  // חיצוני / סכימות מיוחדות – אל תיגע
+  if (/^(?:[a-z]+:)?\/\//i.test(s) || /^data:/i.test(s) || /^mailto:|^tel:/i.test(s)) return s;
+
+  // אם כבר מתחיל ב־BASE (עם/בלי סלאש מוביל) – תחזיר כמו שהוא
+  const baseNoLead = BASE.replace(/^\//, ""); // e.g. 'compass-world-astro/'
+  if (s.startsWith(BASE) || s.startsWith(`/${baseNoLead}`)) return s;
+
+  // אם מתחיל בסלאש – הצמד ל־BASE
+  if (s.startsWith("/")) return `${BASE}${s.slice(1)}`;
+
+  // יחסי → הצמד ל־BASE
+  return `${BASE}${s}`;
+};
+
+/** toImg:
+ * מקבל ערך מה־frontmatter (שם קובץ או נתיב)
+ * אם זה שם קובץ בלבד → נוסיף את התקייה שלך '/legacy/prime-children'
+ * ואז נעביר דרך withBase.
+ */
+const IMAGES_ROOT = "/legacy/prime-children";
+const toImg = (p: unknown, fallback = "/images/avatar-placeholder.svg"): string => {
+  let s = String(p || "");
+  if (!s) s = fallback;
+  const isExternal = /^(?:[a-z]+:)?\/\//i.test(s) || /^data:/i.test(s);
+  if (!isExternal && !s.startsWith("/")) s = `${IMAGES_ROOT}/${s}`;
+  return withBase(s);
+};
+
+/** =========================
+ *  SSG paths
+ *  ========================= */
 export async function getStaticPaths() {
   const entries = await getCollection("prime-children");
   return entries
@@ -22,27 +62,58 @@ export async function getStaticPaths() {
     .map((e) => ({ params: { slug: e.slug } }));
 }
 
-// שליפה
+/** =========================
+ *  Load entry
+ *  ========================= */
 const entry = await getEntryBySlug("prime-children", slug);
 if (!entry) {
   return new Response(`Prime-Child not found: ${slug}`, { status: 404 });
 }
-// מרנדרים כדי לקבל גם Content וגם data
+
 const rendered = await entry.render();
 const Content = rendered.Content;
-const data = rendered.data ?? {};
+const data: any = rendered.data ?? {};
 
-// ===== נרמול =====
+/** =========================
+ *  Normalized fields
+ *  ========================= */
 const name    = data.name ?? data.title ?? slug;
 const summary = data.summary ?? data.short ?? "Profile coming soon.";
 const tags    = Array.isArray(data.tags) ? data.tags : [];
-const sideTag = data.side ?? tags.find((t) => /^(hero|villain)$/i.test(String(t))) ?? "";
+const sideTag = (data.side ?? tags.find((t: string) => /^(hero|villain)$/i.test(String(t)))) ?? "";
 
-// תמונה ראשית + fallback
-const FALLBACK_IMG = withBase("/images/avatar-placeholder.svg"); // ← שנה ל-/assets/placeholders/prime-child.webp אם יתקיים
-const heroImg = withBase(data.portrait || data.image || "/images/avatar-placeholder.svg");
+// תמונת hero + fallback (הכרזה יחידה כאן!)
+// תמונת hero + fallback
+const FALLBACK_IMG = withBase("/images/avatar-placeholder.svg");
 
-// קישור חזרה
+// אם יש portrait/image ב-frontmatter – נשתמש בו.
+// אחרת ננסה אוטומטית תמונה בשם ה-slug בתוך /legacy/prime-children/<slug>.webp
+const CANDIDATE_FROM_FRONTMATTER = data.portrait || data.image || "";
+const CANDIDATE_BY_SLUG = `/legacy/prime-children/${slug}.webp`;
+
+const heroImg = toImg(
+  CANDIDATE_FROM_FRONTMATTER || CANDIDATE_BY_SLUG,
+  "/images/avatar-placeholder.svg"
+);
+
+// powers: תומך גם ב־power יחיד וגם ב־powers[]
+const powers: string[] = Array.isArray(data.powers)
+  ? data.powers
+  : (data.power ? [String(data.power)] : []);
+
+// links: הופך קישורים יחסיים לפנימיים עם BASE
+const rawLinks = Array.isArray(data.links) ? data.links : [];
+const links = rawLinks
+  .map((l: any) => {
+    if (!l) return null;
+    if (typeof l === "string") return { href: withBase(l), label: l };
+    const href = l.href ? withBase(l.href) : "";
+    const label = l.label ?? l.href ?? "";
+    return href ? { href, label } : null;
+  })
+  .filter(Boolean) as { href: string; label: string }[];
+
+// back link
 const BACK_TO = withBase("prime-children/");
 ---
 
@@ -70,20 +141,48 @@ const BACK_TO = withBase("prime-children/");
       <section>
         <h1 class="h3 m-0">{name}</h1>
         {summary && <p class="mt-3">{summary}</p>}
+
+        {powers.length > 0 && (
+          <div class="mt-3">
+            <h2 class="h5 mb-1">Powers</h2>
+            <ul class="mt-2 list-disc list-inside">
+              {powers.map((p) => <li>{p}</li>)}
+            </ul>
+          </div>
+        )}
+
         {tags.length > 0 && (
           <div class="mt-3 d-flex flex-wrap gap-2">
             {tags.map((t) => <span class="badge bg-secondary">{t}</span>)}
           </div>
         )}
+
+        {links.length > 0 && (
+          <div class="mt-3">
+            <h2 class="h5 mb-1">Links</h2>
+            <ul class="mt-2">
+              {links.map((l) => (
+                <li>
+                  <a
+                    href={l.href}
+                    class="link-light text-decoration-underline"
+                    target={/^https?:\/\//i.test(l.href) ? "_blank" : undefined}
+                    rel={/^https?:\/\//i.test(l.href) ? "noopener noreferrer" : undefined}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
     </article>
 
-    {/* תוכן ה-MDX אם קיים */}
     {Content && (
       <section class="mt-5">
         <h2 class="h5 mb-3">Profile</h2>
-
-        {/* מעבירים ROOT ו-FALLBACK כ-data-* כדי שהסקריפט יוכל להשתמש בהם בלי import.meta */}
+        {/** מעבירים ROOT/FALLBACK כ-data-* כדי שהסקריפט יעבוד בלי import.meta */}
         <article id="pc-mdx" class="prose text-white-80 mx-auto"
                  style="max-width: 860px;"
                  data-root={BASE}
@@ -99,7 +198,7 @@ const BACK_TO = withBase("prime-children/");
   </style>
 
   <script is:inline>
-    // מוסיף BASE_URL לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback
+    // מוסיף BASE_URL לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback (ללא import.meta)
     (() => {
       const host = document.getElementById('pc-mdx');
       if (!host) return;
@@ -111,10 +210,11 @@ const BACK_TO = withBase("prime-children/");
         if (!img.loading) img.loading = 'lazy';
 
         const src = img.getAttribute('src') || '';
-        if (src && !/^https?:\/\//i.test(src)) {
+        if (src && !/^(?:[a-z]+:)?\/\//i.test(src) && !/^data:/i.test(src)) {
           const path = src.startsWith('/') ? src : `/${src}`;
           img.src = `${ROOT}${path}`;
         }
+
         img.addEventListener('error', () => { if (FALL) img.src = FALL; }, { once: true });
       });
     })();

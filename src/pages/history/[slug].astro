@@ -54,41 +54,43 @@ const PLACEHOLDER = withBase("/assets/placeholders/history.webp");
     </header>
 
     <!-- מרנדרים את תוכן ה-MDX כפי שהוא -->
-    <article class="prose text-white-80 mx-auto" style="max-width: 860px;">
+    <article id="hist-mdx"
+         class="prose text-white-80 mx-auto"
+         style="max-width: 860px;"
+         data-root={BASE}
+         data-fallback={withBase('/images/avatar-placeholder.svg')}>
       <Content />
-    </article>
+      </article>
   </section>
 
   <style>
     .prose img { display:block; max-width:100%; height:auto; }
   </style>
 
-  <script is:inline>
-    // עדכון כל התמונות בתוך ה-MDX: BASE_URL, מחלקות, lazy, ו-fallback
-    (() => {
-      // ❌ אל תנסה להזריק {JSON.stringify(BASE)}
-      // ✅ השתמש ישירות ב-import.meta.env.BASE_URL (מתחלף בבילד)
-      const ROOT = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
-      const PLACEHOLDER = `${ROOT}/assets/placeholders/history.webp`;
+ <script is:inline>
+  // מוסיף BASE לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback
+  (() => {
+    const host = document.getElementById('hist-mdx');
+    if (!host) return;
 
-      document.querySelectorAll('.prose img').forEach((img) => {
-        // מחלקות רספונסיביות
-        img.classList.add('img-fluid', 'rounded-3', 'shadow-sm', 'my-3', 'w-100');
-        // lazy
-        img.loading = 'lazy';
+    const ROOT = (host.dataset.root || "/").replace(/\/$/, "");
+    const PLACEHOLDER = host.dataset.fallback || "";
 
-        // הוספת BASE_URL אם זה נתיב יחסי/מוחלט מקומי
-        const src = img.getAttribute('src') || '';
-        if (src && !/^https?:\/\//i.test(src)) {
-          const path = src.startsWith('/') ? src : `/${src}`;
-          img.src = `${ROOT}${path}`;
-        }
+    host.querySelectorAll('.prose img').forEach((img) => {
+      img.classList.add('img-fluid','rounded-3','shadow-sm','my-3','w-100');
+      img.loading = img.loading || 'lazy';
 
-        // fallback במקרה של 404
-        img.addEventListener('error', () => {
-          img.src = PLACEHOLDER;
-        }, { once: true });
-      });
-    })();
-  </script>
+      const src = img.getAttribute('src') || '';
+      if (src && !/^(?:[a-z]+:)?\/\//i.test(src)) {
+        const path = src.startsWith('/') ? src : `/${src}`;
+        img.src = `${ROOT}${path}`;
+      }
+
+      img.addEventListener('error', () => {
+        if (PLACEHOLDER) img.src = PLACEHOLDER;
+      }, { once: true });
+    });
+  })();
+</script>
+
 </BaseLayout>

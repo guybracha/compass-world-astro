@@ -8,17 +8,16 @@ const {
   image = "/legacy/gallery/compass-alliance-artwork.webp"
 } = Astro.props;
 
-// נרמול BASE: תמיד יסתיים ב"/"
+// נרמול BASE שיסתיים ב"/"
 const RAW_BASE = import.meta.env.BASE_URL ?? "/";
 const BASE = RAW_BASE.endsWith("/") ? RAW_BASE : `${RAW_BASE}/`;
 
-// פונקציה לשרשור נתיבים פנימיים עם BASE (גם בפריוויו/פרודקשן)
+// צירוף נתיבים פנימיים ל-BASE (לא נוגעים בקישורים חיצוניים)
 const withBase = (p = "") => {
   if (!p) return BASE;
-  // אל תשנה קישורים חיצוניים/סכימות אחרות
   if (/^(https?:)?\/\//i.test(p) || /^mailto:|^tel:/i.test(p)) return p;
-  const clean = p.replace(/^\/+/, "");       // מסיר "/" מיותרים בתחילת הנתיב
-  return `${BASE}${clean}`.replace(/\/{2,}/g, "/"); // מונע "//"
+  const clean = p.replace(/^\/+/, "");
+  return `${BASE}${clean}`; // בלי החלפה גלובלית כדי לא לשבור https://
 };
 ---
 <!DOCTYPE html>
@@ -27,7 +26,6 @@ const withBase = (p = "") => {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- SEO (כותרת, תיאור, OG/Twitter, קנוניקל, JSON-LD) -->
     <SEO
       title={title}
       description={description}
@@ -37,7 +35,6 @@ const withBase = (p = "") => {
       twitter={{ card: "summary_large_image", site: "@GuyBracha" }}
     />
 
-    <!-- הרחבות ייעודיות לעמודים (OG/JSON-LD נוספים וכו') -->
     <slot name="head" />
 
     <!-- Fonts -->
@@ -46,8 +43,10 @@ const withBase = (p = "") => {
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+          crossorigin="anonymous">
 
     <style>
       :root { --brand: #ffb703; }
@@ -57,7 +56,7 @@ const withBase = (p = "") => {
       .card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
       .img-cover { object-fit: cover; width: 100%; height: 200px; border-radius: 0.75rem; }
       .will-animate { will-change: transform, opacity; }
-
+      .navbar-toggler { border-color: rgba(255,255,255,.3); }
       /* ---- Compass World animated brand ---- */
       .navbar-brand.brand-anim { display: inline-block; line-height: 1; animation: cw-pop .6s ease-out both; }
       .cw-word{ position: relative; display: inline-block; background: linear-gradient(90deg,#ffffff, var(--brand), #00d4ff 60%, #a855f7); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cw-shine 6s linear infinite; letter-spacing: .2px; }
@@ -66,13 +65,6 @@ const withBase = (p = "") => {
       @keyframes cw-shine{ 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
       @keyframes cw-pop{ 0%{opacity:0;transform:translateY(-6px) scale(.98)} 100%{opacity:1;transform:none} }
     </style>
-
-    <!-- GSAP (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
-
-    <!-- סקריפט מקומי (public) עם BASE -->
-    <script src={withBase("/scripts/gsap-init.js")} defer></script>
 
     {import.meta.env.MODE === "production" && (
       <>
@@ -97,6 +89,7 @@ const withBase = (p = "") => {
             <span class="cw-word cw-accent">World</span>
           </a>
 
+          <!-- Toggler -->
           <button
             class="navbar-toggler"
             type="button"
@@ -109,6 +102,7 @@ const withBase = (p = "") => {
             <span class="navbar-toggler-icon"></span>
           </button>
 
+          <!-- Collapse -->
           <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto gap-lg-2">
               <li class="nav-item"><a class="nav-link" href={withBase("/comics/")}>Comics</a></li>
@@ -137,7 +131,38 @@ const withBase = (p = "") => {
       </div>
     </footer>
 
-    <!-- Bootstrap JS (CDN) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- 1) Bootstrap Bundle (UMD) -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+      defer
+    ></script>
+
+    <!-- 2) GSAP (CDN) - אחרי Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
+
+    <!-- 3) סקריפט מקומי (public) עם BASE -->
+    <script src={withBase("/scripts/gsap-init.js")} defer></script>
+
+    <!-- 4) פלייבק אם Bootstrap לא נטען -->
+    <script defer>
+      window.addEventListener('DOMContentLoaded', () => {
+        try {
+          if (window.bootstrap) return; // הכל טוב
+          console.warn('Bootstrap NOT detected – enabling minimal navbar fallback');
+          const toggler = document.querySelector('.navbar-toggler');
+          const menu = document.getElementById('mainNav');
+          if (toggler && menu) {
+            toggler.addEventListener('click', () => {
+              menu.classList.toggle('show');
+            });
+          }
+        } catch (e) {
+          console.warn('Navbar fallback failed:', e);
+        }
+      });
+    </script>
   </body>
 </html>
