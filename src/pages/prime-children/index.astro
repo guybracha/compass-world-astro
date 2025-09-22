@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
-const all = await getCollection('primeChildren');
+const all = await getCollection('prime-children');
 
 // overview (אם קיים)
 const overviewEntry = all.find((e) => (e.data.kind ?? 'member') === 'overview');
@@ -161,7 +161,7 @@ const categories = Array.from(
         })
       ) : (
         <p class="text-white-50" data-reveal>
-          No Prime-Children members yet. Add files under <code>src/content/primeChildren</code>.
+          No Prime-Children members yet. Add files under <code>src/content/prime-children</code>.
         </p>
       )}
     </div>

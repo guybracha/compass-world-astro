@@ -29,12 +29,11 @@ const image = data?.image ?? null;
       <div class="col-lg-5">
         {image && (
           <img
-            src={image}
-            alt={year}
-            class="img-fluid rounded-3 shadow-sm will-animate"
-            loading="eager"
-            decoding="async"
-          />
+          src={image || "/assets/placeholders/history.webp"}
+          alt={year}
+          class="img-fluid rounded-3 shadow-sm will-animate"
+          onError="this.onerror=null;this.src='/assets/placeholders/history.webp';"
+        />
         )}
       </div>
 
