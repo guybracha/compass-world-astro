@@ -64,11 +64,12 @@ const PLACEHOLDER = withBase("/assets/placeholders/history.webp");
   </style>
 
   <script is:inline>
-    // מעדכן את כל התמונות שבתוך ה-MDX: BASE_URL, מחלקות, lazy, ו-fallback
+    // עדכון כל התמונות בתוך ה-MDX: BASE_URL, מחלקות, lazy, ו-fallback
     (() => {
-      const BASE = {JSON.stringify(BASE)};
-      const PLACEHOLDER = {JSON.stringify(PLACEHOLDER)};
-      const root = BASE.replace(/\/$/, "");
+      // ❌ אל תנסה להזריק {JSON.stringify(BASE)}
+      // ✅ השתמש ישירות ב-import.meta.env.BASE_URL (מתחלף בבילד)
+      const ROOT = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+      const PLACEHOLDER = `${ROOT}/assets/placeholders/history.webp`;
 
       document.querySelectorAll('.prose img').forEach((img) => {
         // מחלקות רספונסיביות
@@ -80,7 +81,7 @@ const PLACEHOLDER = withBase("/assets/placeholders/history.webp");
         const src = img.getAttribute('src') || '';
         if (src && !/^https?:\/\//i.test(src)) {
           const path = src.startsWith('/') ? src : `/${src}`;
-          img.src = `${root}${path}`;
+          img.src = `${ROOT}${path}`;
         }
 
         // fallback במקרה של 404

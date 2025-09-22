@@ -3,73 +3,120 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getEntryBySlug, getCollection } from "astro:content";
 
+export const prerender = true;
+
 const { slug } = Astro.params;
 
-// ✅ Build-time paths (if you need SSG)
+// ✅ תמיכה בתת-נתיב (GitHub Pages)
+const BASE = import.meta.env.BASE_URL || "/";
+const withBase = (p = "") =>
+  p && !/^https?:\/\//i.test(p)
+    ? `${BASE}${String(p).replace(/^\/+/, "")}`
+    : p || "";
+
+// יצירת נתיבי SSG (מדלגים על overview)
 export async function getStaticPaths() {
   const entries = await getCollection("prime-children");
-  return entries.map((e) => ({ params: { slug: e.slug } }));
+  return entries
+    .filter((e) => (e.data.kind ?? "member") !== "overview")
+    .map((e) => ({ params: { slug: e.slug } }));
 }
 
-// ✅ Runtime data lookup with guards
+// שליפה
 const entry = await getEntryBySlug("prime-children", slug);
-
 if (!entry) {
-  // Avoid reading properties on undefined and send a 404
   return new Response(`Prime-Child not found: ${slug}`, { status: 404 });
 }
+// מרנדרים כדי לקבל גם Content וגם data
+const rendered = await entry.render();
+const Content = rendered.Content;
+const data = rendered.data ?? {};
 
-const data = entry.data ?? {};
+// ===== נרמול =====
+const name    = data.name ?? data.title ?? slug;
+const summary = data.summary ?? data.short ?? "Profile coming soon.";
+const tags    = Array.isArray(data.tags) ? data.tags : [];
+const sideTag = data.side ?? tags.find((t) => /^(hero|villain)$/i.test(String(t))) ?? "";
 
-// Fallbacks so UI never crashes if a field is missing
-const name = data.name ?? data.title ?? slug;
-const alias = data.alias ?? "";
-const image = data.image ?? "/assets/placeholders/prime-child.webp";
-const short = data.short ?? "Profile coming soon.";
-const powers = Array.isArray(data.powers) ? data.powers : [];
-const links  = Array.isArray(data.links)  ? data.links  : [];
+// תמונה ראשית + fallback
+const FALLBACK_IMG = withBase("/images/avatar-placeholder.svg"); // ← שנה ל-/assets/placeholders/prime-child.webp אם יתקיים
+const heroImg = withBase(data.portrait || data.image || "/images/avatar-placeholder.svg");
+
+// קישור חזרה
+const BACK_TO = withBase("prime-children/");
 ---
 
-<BaseLayout title={`${name} | Prime Children`} class="dark">
-  <main class="container mx-auto py-10 text-slate-100">
-    <article class="grid gap-8 md:grid-cols-[280px,1fr]">
-      <img
-        src={image}
-        alt={name}
-        loading="eager"
-        decoding="async"
-        class="img-fluid rounded-2xl border border-white/10"
-        loading="eager"
-      />
-      <section>
-        <h1 class="text-4xl font-extrabold tracking-tight">{name}</h1>
-        {alias && <p class="mt-1 text-slate-300">{alias}</p>}
-        <p class="mt-4 text-slate-200">{short}</p>
+<BaseLayout title={`${name} | Prime-Children`} class="dark">
+  <main class="container py-5 text-slate-100">
+    <a href={BACK_TO} class="text-white-50 d-inline-block mb-3">← Back to roster</a>
 
-        {powers.length > 0 && (
-          <div class="mt-6">
-            <h2 class="text-xl font-semibold">Powers</h2>
-            <ul class="mt-2 list-disc list-inside space-y-1 text-slate-200">
-              {powers.map((p) => <li>{p}</li>)}
-            </ul>
+    <article class="grid gap-4 md:grid-cols-[280px,1fr]">
+      <div>
+        <img
+          src={heroImg}
+          alt={name}
+          decoding="async"
+          loading="eager"
+          class="img-fluid rounded-3 border border-white/10 w-100"
+          onerror={`this.onerror=null;this.src='${FALLBACK_IMG}';`}
+        />
+        {sideTag && (
+          <div class="mt-3">
+            <span class={`badge ${String(sideTag).toLowerCase()==="villain" ? "bg-danger" : "bg-success"}`}>{String(sideTag)}</span>
           </div>
         )}
+      </div>
 
-        {links.length > 0 && (
-          <div class="mt-6">
-            <h2 class="text-xl font-semibold">Links</h2>
-            <ul class="mt-2 space-y-1">
-              {links.map((l) => (
-                <li>
-                  <a href={l.href} class="underline hover:opacity-80" target="_blank" rel="noopener noreferrer">
-                    {l.label ?? l.href}
-                  </a>
-                </li>
-              ))}
-            </ul>
+      <section>
+        <h1 class="h3 m-0">{name}</h1>
+        {summary && <p class="mt-3">{summary}</p>}
+        {tags.length > 0 && (
+          <div class="mt-3 d-flex flex-wrap gap-2">
+            {tags.map((t) => <span class="badge bg-secondary">{t}</span>)}
           </div>
         )}
       </section>
     </article>
+
+    {/* תוכן ה-MDX אם קיים */}
+    {Content && (
+      <section class="mt-5">
+        <h2 class="h5 mb-3">Profile</h2>
+
+        {/* מעבירים ROOT ו-FALLBACK כ-data-* כדי שהסקריפט יוכל להשתמש בהם בלי import.meta */}
+        <article id="pc-mdx" class="prose text-white-80 mx-auto"
+                 style="max-width: 860px;"
+                 data-root={BASE}
+                 data-fallback={FALLBACK_IMG}>
+          <Content />
+        </article>
+      </section>
+    )}
   </main>
+
+  <style>
+    .prose img { display:block; max-width:100%; height:auto; }
+  </style>
+
+  <script is:inline>
+    // מוסיף BASE_URL לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback
+    (() => {
+      const host = document.getElementById('pc-mdx');
+      if (!host) return;
+      const ROOT = (host.dataset.root || "/").replace(/\/$/, "");
+      const FALL = host.dataset.fallback || "";
+
+      host.querySelectorAll('img').forEach((img) => {
+        img.classList.add('img-fluid','rounded-3','my-3','w-100');
+        if (!img.loading) img.loading = 'lazy';
+
+        const src = img.getAttribute('src') || '';
+        if (src && !/^https?:\/\//i.test(src)) {
+          const path = src.startsWith('/') ? src : `/${src}`;
+          img.src = `${ROOT}${path}`;
+        }
+        img.addEventListener('error', () => { if (FALL) img.src = FALL; }, { once: true });
+      });
+    })();
+  </script>
 </BaseLayout>
