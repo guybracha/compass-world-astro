@@ -3,7 +3,7 @@ name: Deploy Astro site to Pages
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # אם הפרויקט בתיקיית משנה (מונוריפו) – עדכן כאן, למשל "apps/site"
+  # אם הפרויקט נמצא בתיקייה אחרת (מונוריפו) עדכן כאן, למשל: apps/site
   BUILD_PATH: "."
 
 jobs:
@@ -28,24 +28,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # זיהוי מנהל החבילות (npm / yarn / pnpm)
+      # זיהוי מנהל החבילות
       - name: Detect package manager
         id: detect-package-manager
         run: |
           if [ -f "${{ github.workspace }}/${{ env.BUILD_PATH }}/pnpm-lock.yaml" ]; then
             echo "manager=pnpm" >> $GITHUB_OUTPUT
-            echo "install=pnpm i --frozen-lockfile" >> $GITHUB_OUTPUT
-            echo "runner=pnpm" >> $GITHUB_OUTPUT
             echo "lockfile=pnpm-lock.yaml" >> $GITHUB_OUTPUT
           elif [ -f "${{ github.workspace }}/${{ env.BUILD_PATH }}/yarn.lock" ]; then
             echo "manager=yarn" >> $GITHUB_OUTPUT
-            echo "install=yarn install --frozen-lockfile" >> $GITHUB_OUTPUT
-            echo "runner=yarn" >> $GITHUB_OUTPUT
             echo "lockfile=yarn.lock" >> $GITHUB_OUTPUT
           else
             echo "manager=npm" >> $GITHUB_OUTPUT
-            echo "install=npm ci" >> $GITHUB_OUTPUT
-            echo "runner=npx --no-install" >> $GITHUB_OUTPUT
             echo "lockfile=package-lock.json" >> $GITHUB_OUTPUT
           fi
 
@@ -56,21 +50,38 @@ jobs:
           cache: ${{ steps.detect-package-manager.outputs.manager }}
           cache-dependency-path: ${{ env.BUILD_PATH }}/${{ steps.detect-package-manager.outputs.lockfile }}
 
-      # נדרש כדי לקבל origin/base_path נכונים לבילד (כולל פריוויו)
+      # נדרש כדי לקבל origin/base_path נכונים (גם ל־preview)
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
 
-      - name: Install dependencies
-        run: ${{ steps.detect-package-manager.outputs.install }}
+      # npm בלבד: סנכרון lockfile כדי למנוע EUSAGE
+      - name: Sync lockfile (npm only)
+        if: ${{ steps.detect-package-manager.outputs.manager == 'npm' }}
+        run: npm install --package-lock-only
         working-directory: ${{ env.BUILD_PATH }}
 
-      - name: Build with Astro (uses Pages origin/base)
-        run: |
-          ${{ steps.detect-package-manager.outputs.runner }} astro build \
-            --site "${{ steps.pages.outputs.origin }}" \
-            --base "${{ steps.pages.outputs.base_path }}"
+      - name: Install dependencies
         working-directory: ${{ env.BUILD_PATH }}
+        run: |
+          if [ "${{ steps.detect-package-manager.outputs.manager }}" = "pnpm" ]; then
+            pnpm i --frozen-lockfile
+          elif [ "${{ steps.detect-package-manager.outputs.manager }}" = "yarn" ]; then
+            yarn install --frozen-lockfile
+          else
+            npm ci
+          fi
+
+      - name: Build with Astro (uses Pages origin/base)
+        working-directory: ${{ env.BUILD_PATH }}
+        run: |
+          if [ "${{ steps.detect-package-manager.outputs.manager }}" = "pnpm" ]; then
+            pnpm astro build --site "${{ steps.pages.outputs.origin }}" --base "${{ steps.pages.outputs.base_path }}"
+          elif [ "${{ steps.detect-package-manager.outputs.manager }}" = "yarn" ]; then
+            yarn astro build --site "${{ steps.pages.outputs.origin }}" --base "${{ steps.pages.outputs.base_path }}"
+          else
+            npx --no-install astro build --site "${{ steps.pages.outputs.origin }}" --base "${{ steps.pages.outputs.base_path }}"
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
