@@ -4,30 +4,58 @@ import { getCollection, getEntryBySlug } from 'astro:content';
 
 export const prerender = true;
 
+/* ---------- base helpers ---------- */
+const BASE = import.meta.env.BASE_URL || '/';
+const withBase = (p = '') => {
+  if (!p) return '';
+  if (/^https?:\/\//i.test(p)) return p;   // external URL
+  if (p.startsWith(BASE)) return p;        // already has base
+  const b = BASE.replace(/\/+$/, '');
+  const path = p.replace(/^\/+/, '');
+  return `${b}/${path}`;
+};
+
+const PLACEHOLDER = withBase('/images/avatar-placeholder.svg');
+
+/* ---------- static paths for dynamic route ---------- */
 export async function getStaticPaths() {
   const entries = await getCollection('gallery');
   return entries.map(({ slug }) => ({ params: { slug } }));
 }
 
+/* ---------- load current entry ---------- */
 const { slug } = Astro.params;
 const entry = await getEntryBySlug('gallery', slug!);
 if (!entry) {
   throw new Error(`Gallery item not found: ${slug}`);
 }
 
-// נתונים של הפריט הנוכחי
-const rendered = await entry.render();
-const data = rendered?.data ?? {};
-const Content = rendered?.Content;
+const data = entry.data;                // ← frontmatter האמיתי
+const { Content } = await entry.render(); // ← גוף התוכן
 
-const title = (data.title ?? slug).toString();
-const image = data.image ?? '/images/gallery-placeholder.svg';
+
+/* ---------- image (string or ImageMetadata) ---------- */
+const rawImg = data.image;
+let imgUrl = PLACEHOLDER;
+let imgW, imgH;
+
+if (typeof rawImg === 'string') {
+  const normalized = rawImg.startsWith('/') ? rawImg : `/${rawImg}`;
+  imgUrl = withBase(normalized);
+} else if (rawImg && typeof rawImg === 'object') {
+  imgUrl = withBase(rawImg.src || '');
+  imgW = rawImg.width;
+  imgH = rawImg.height;
+}
+
+/* ---------- fields ---------- */
+const title   = (data.title ?? slug).toString();
 const caption = (data.caption ?? '').toString();
-const tags = Array.isArray(data.tags) ? data.tags : [];
-const sourceUrl = (data.sourceUrl ?? '').toString();
-const updated = (data.updated ?? '').toString();
+const tags    = Array.isArray(data.tags) ? data.tags : [];
+const sourceUrl = withBase((data.sourceUrl ?? '').toString());
+const updated   = (data.updated ?? '').toString();
 
-// לאינדקס וניווט
+/* ---------- prev/next ---------- */
 const all = (await getCollection('gallery')).sort((a, b) => a.slug.localeCompare(b.slug));
 const idx = all.findIndex((i) => i.slug === slug);
 const prev = idx > 0 ? all[idx - 1] : null;
@@ -35,18 +63,20 @@ const next = idx < all.length - 1 ? all[idx + 1] : null;
 ---
 
 <BaseLayout title={`${title} | Gallery`} description={caption}>
-  <section class="container py-5" data-reveal>
-    <a href="/gallery/" class="text-white-50">← Back to Gallery</a>
+  <section class="container py-5" data-reveal data-base={BASE}>
+    <a href={withBase('/gallery/')} class="text-white-50">← Back to Gallery</a>
 
     <div class="row g-4 mt-2">
       <div class="col-lg-6">
         <div class="card p-3 pc-glow" data-tilt>
           <img
-            src={image}
+            src={imgUrl}
             alt={title}
+            width={imgW}
+            height={imgH}
             class="img-fluid rounded-3 parallax"
             loading="lazy"
-            onerror="this.onerror=null;this.src='/images/gallery-placeholder.svg';"
+            onerror={`this.onerror=null;this.src='${PLACEHOLDER}'`}
           />
         </div>
         {caption && <p class="text-white-50 small mt-3 mb-0">{caption}</p>}
@@ -71,23 +101,23 @@ const next = idx < all.length - 1 ? all[idx + 1] : null;
         )}
 
         {Content && (
-          <article class="text-white-80">
+          <article class="text-white-80" id="mdx-content">
             <Content />
           </article>
         )}
       </div>
     </div>
 
-    {/* ניווט הקודם/הבא */}
+    {/* prev/next navigation */}
     <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-secondary-subtle">
       <div>
         {prev ? (
-          <a class="btn btn-outline-light btn-sm" href={`/gallery/${prev.slug}/`}>← {prev.data?.title ?? prev.slug}</a>
+          <a class="btn btn-outline-light btn-sm" href={withBase(`/gallery/${prev.slug}/`)}>← {prev.data?.title ?? prev.slug}</a>
         ) : <span />}
       </div>
       <div>
         {next ? (
-          <a class="btn btn-outline-light btn-sm" href={`/gallery/${next.slug}/`}>{next.data?.title ?? next.slug} →</a>
+          <a class="btn btn-outline-light btn-sm" href={withBase(`/gallery/${next.slug}/`)}>{next.data?.title ?? next.slug} →</a>
         ) : <span />}
       </div>
     </div>
@@ -96,4 +126,25 @@ const next = idx < all.length - 1 ? all[idx + 1] : null;
   <style is:global>
     .pc-glow { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
   </style>
+
+  {/* אופציונלי: תיקון קישורים יחסיים בתוך MDX */}
+  <script is:inline>
+    (() => {
+      const root = document.getElementById('mdx-content');
+      if (!root) return;
+      const section = root.closest('[data-base]');
+      const BASE = section?.getAttribute('data-base') || '/';
+
+      const addBase = (u) => BASE.replace(/\/+$/,'') + '/' + u.replace(/^\/+/, '');
+      const fix = (el, attr) => {
+        const v = el.getAttribute(attr);
+        if (!v || /^https?:\/\//i.test(v)) return;
+        if (!v.startsWith('/')) return;
+        if (v.startsWith(BASE)) return;
+        el.setAttribute(attr, addBase(v));
+      };
+      root.querySelectorAll('[src^="/"]').forEach(el => fix(el, 'src'));
+      root.querySelectorAll('a[href^="/"]').forEach(el => fix(el, 'href'));
+    })();
+  </script>
 </BaseLayout>

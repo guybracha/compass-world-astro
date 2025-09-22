@@ -46,12 +46,11 @@ const pages = defineCollection({
 });
 
 const gallery = defineCollection({
-  type: 'content',
   schema: z.object({
     title: z.string(),
-    image: z.string(),
     caption: z.string().optional(),
-    tags: z.array(z.string()).default([]),
+    image: z.union([z.string(), z.object({ src: z.string(), width: z.number(), height: z.number(), format: z.string() })]),
+    tags: z.array(z.string()).optional(),
     sourceUrl: z.string().optional(),
     updated: z.string().optional(),
   }),

@@ -22,9 +22,11 @@
   },
   "devDependencies": {
     "@astrojs/mdx": "^4.3.6",
-    "@types/gsap": "^3.0.0"
+    "@types/gsap": "^3.0.0",
+    "fast-glob": "^3.3.3",
+    "gray-matter": "^4.0.3"
   },
-   "overrides": {
+  "overrides": {
     "zod": "^3.25.8"
   }
 }

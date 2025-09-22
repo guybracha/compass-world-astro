@@ -287,8 +287,6 @@ async function migrateGallery() {
   }
 }
 
-
-/* ------------- PRIME CHILDREN (overview from primeChildren.html + members from files.html) -------- */
 /* ------------- PRIME CHILDREN (overview from HTML + members from assets/scripts/primeChildren.js) -------- */
 async function migratePrimeChildren() {
   // A) OVERVIEW מה-HTML (כמו קודם)
