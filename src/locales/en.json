@@ -1,0 +1,13 @@
+{
+  "siteName": "Compass World",
+  "home": {
+    "eyebrow": "Universe Wiki",
+    "title": "Compass World",
+    "subtitle": "A living sci-fi/fantasy universe by Guy Bracha — explore characters, eras, and cosmic mysteries.",
+    "buttons": {
+      "characters": "Characters",
+      "chronology": "Chronology",
+      "gallery": "Gallery"
+    }
+  }
+}
