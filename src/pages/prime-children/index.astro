@@ -1,5 +1,4 @@
 ---
-// src/pages/prime-children/index.astro
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
@@ -157,7 +156,10 @@ const categories = Array.from(new Set(
                 <div class="pc-thumb mb-3">
                   <img src={img} alt={name} class="img-cover parallax" loading="lazy" />
                 </div>
-                <h2 class="h5 m-0">{name}</h2>
+
+                {/* 🆕 כותרת נגישת יותר */}
+                <h2 class="pc-title m-0">{name}</h2>
+
                 <div class="mt-2 d-flex flex-wrap gap-2">
                   {side && <span class={`badge ${side === 'נבל' ? 'bg-danger' : 'bg-success'}`}>{side}</span>}
                   {data.power && <span class="badge bg-warning text-dark">{data.power}</span>}
@@ -174,7 +176,8 @@ const categories = Array.from(new Set(
       )}
     </div>
   </section>
-    <!-- 🧠 סקריפט סינון/מיון/חיפוש -->
+
+  <!-- 🧠 סקריפט סינון/מיון/חיפוש -->
   <script is:inline>
     (() => {
       const $  = (s) => document.querySelector(s);
@@ -258,7 +261,7 @@ const categories = Array.from(new Set(
         if (selSide)   selSide.value = '';
         if (selPower)  selPower.value = '';
         if (selCat)    selCat.value = '';
-        if (sortSel)   sortSel.value = 'name-asc'; // ✅ תיקון הטייפו (לא selSort)
+        if (sortSel)   sortSel.value = 'name-asc';
         if (inpSearch) inpSearch.value = '';
         apply();
       });
@@ -267,4 +270,77 @@ const categories = Array.from(new Set(
       apply();
     })();
   </script>
+
+  <!-- 🎨 שיפורי נגישות/ניגודיות לכרטיסים והכותרות -->
+  <style is:global>
+    /* ===== Prime Children – Card & Title A11y upgrades ===== */
+
+    .pc-card{
+      background: #12161d;
+      border: 1px solid #2a3442;
+      color: #e6ebf2;
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background-color .15s ease;
+      border-radius: 16px;
+    }
+    .pc-card:hover,
+    .pc-card:focus-visible{
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(0,0,0,.35);
+      border-color: #3c4b60;
+      background: #151b24;
+      outline: none;
+    }
+
+    .pc-thumb img{
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .pc-title{
+      color: #f3f6fb;
+      font-weight: 800;
+      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+      letter-spacing: .2px;
+      line-height: 1.2;
+      margin-top: .2rem;
+      text-rendering: optimizeLegibility;
+      text-shadow: 0 1px 0 rgba(0,0,0,.35);
+    }
+    .pc-card:hover .pc-title,
+    .pc-card:focus-visible .pc-title{
+      color: #ffffff;
+    }
+
+    .pc-card .badge{
+      border-radius: 999px;
+      font-weight: 700;
+      opacity: .95;
+    }
+    .pc-card:hover .badge,
+    .pc-card:focus-visible .badge{
+      opacity: 1;
+    }
+
+    @media (prefers-color-scheme: light){
+      .pc-card{
+        background: #f8fafc;
+        border-color: #d8e0ea;
+        color: #0f172a;
+      }
+      .pc-card:hover,
+      .pc-card:focus-visible{
+        background: #ffffff;
+        border-color: #c8d2df;
+        box-shadow: 0 12px 28px rgba(2, 6, 23, .12);
+      }
+      .pc-title{
+        color: #0b1324;
+        text-shadow: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .pc-card{ transition: none; }
+    }
+  </style>
 </BaseLayout>
