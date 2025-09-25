@@ -2,10 +2,11 @@
 // src/pages/comics/[slug].astro
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
+import { formatHeDate } from "../../lib/dates"; // פורמט תאריך בעברית (מההודעה הקודמת)
 
 export const prerender = true;
 
-// Build all static paths + pass entry/prev/next
+// 1) נתיבים סטטיים
 export async function getStaticPaths() {
   const all = await getCollection("comics");
   const sorted = all
@@ -16,20 +17,23 @@ export async function getStaticPaths() {
       return na === nb ? a.slug.localeCompare(b.slug) : na - nb;
     });
 
-  return sorted.map((entry, i) => ({
-    params: { slug: entry.slug },
+  return sorted.map((e, i) => ({
+    params: { slug: e.slug },
     props: {
-      entry,
+      entry: e,
       prev: i > 0 ? sorted[i - 1] : null,
       next: i < sorted.length - 1 ? sorted[i + 1] : null,
     },
   }));
 }
 
-// ===== Props & helpers =====
+// 2) פרופס (לעשות קודם!)
 const { entry, prev, next } = Astro.props;
-const title = `Compass World | ${entry.data.title}`;
+
+// 3) כל השימושים ב־entry מגיעים רק אחרי ההגדרה
+const title = `עולם המצפן | ${entry.data.title}`;
 const desc = entry.data.summary ?? "";
+const niceDate = formatHeDate(entry.data.date);
 
 // BASE-URL handling (GitHub Pages / subpath-safe)
 const BASE = import.meta.env.BASE_URL || "/";
@@ -52,35 +56,43 @@ const imageAbs = new URL(coverSrc, Astro.url).href;
   <section class="container-xxl py-4">
     <nav class="mb-3">
       <a href={withBase("/comics/")} class="text-decoration-none text-secondary">
-        <i class="bi bi-arrow-left-short"></i> Back to Comics
+        <i class="bi bi-arrow-right-short"></i> חזרה לרשימת הקומיקס
       </a>
     </nav>
 
     <header class="mb-4 text-center">
       {typeof entry.data.number !== "undefined" && (
-        <div class="text-warning fw-semibold">Episode #{entry.data.number}</div>
+        <div class="text-warning fw-semibold">פרק #{entry.data.number}</div>
       )}
-      <h1 class="display-6 fw-bold">{entry.data.title}</h1>
-      {entry.data.date ? <p class="text-secondary small">Published {entry.data.date}</p> : null}
+      <h1 class="display-6 fw-bold font-display-he">{entry.data.title}</h1>
+      {niceDate ? <p class="text-secondary small">פורסם {niceDate}</p> : null}
       {desc && <p class="text-secondary">{desc}</p>}
 
       <div class="d-flex justify-content-center gap-2 mt-3">
-        {prev ? <a class="btn btn-outline-light btn-sm" href={withBase(`/comics/${prev.slug}/`)}>&laquo; Prev</a> : null}
-        <a class="btn btn-brand btn-sm" href={withBase("/comics/")}>All Episodes</a>
-        {next ? <a class="btn btn-outline-light btn-sm" href={withBase(`/comics/${next.slug}/`)}>Next &raquo;</a> : null}
+        {prev ? (
+          <a class="btn btn-outline-light btn-sm" href={withBase(`/comics/${prev.slug}/`)}>
+            <i class="bi bi-arrow-right"></i> קודם
+          </a>
+        ) : null}
+            <a class="btn btn-brand btn-sm btn-display-he" href={withBase("/comics/")}>כל הפרקים</a>
+        {next ? (
+          <a class="btn btn-outline-light btn-sm" href={withBase(`/comics/${next.slug}/`)}>
+            הבא <i class="bi bi-arrow-left"></i>
+          </a>
+        ) : null}
       </div>
     </header>
 
     {/* === Reader === */}
     <article class="reader mx-auto" style="max-width: 980px;">
       {pages.length === 0 ? (
-        <div class="alert alert-warning">No pages found for this episode.</div>
+        <div class="alert alert-warning">לא נמצאו עמודים לפרק זה.</div>
       ) : (
         pages.map((src, i) => (
           <figure class="mb-4 page" data-page={i+1}>
             <img
               src={src}
-              alt={`${entry.data.title} — Page ${i + 1}`}
+              alt={`${entry.data.title} — עמוד ${i + 1}`}
               loading="lazy"
               decoding="async"
               fetchpriority="low"
@@ -88,28 +100,28 @@ const imageAbs = new URL(coverSrc, Astro.url).href;
               width="980"
               onerror={`this.onerror=null;this.src='${placeholderWithBase}';`}
             />
-            <figcaption class="text-center text-secondary small mt-2">Page {i + 1}</figcaption>
+            <figcaption class="text-center text-secondary small mt-2">עמוד {i + 1}</figcaption>
           </figure>
         ))
       )}
     </article>
 
     {/* Floating Pager */}
-    <div class="pager" aria-label="Page navigation">
-      <button class="pager-btn" id="prevPage" type="button" title="Previous page (←)">&#x25C0;</button>
+    <div class="pager" aria-label="ניווט עמודים">
+      <button class="pager-btn" id="prevPage" type="button" title="עמוד קודם (←)">&#x25C0;</button>
       <div class="pager-count"><span id="curPage">1</span>/<span id="totalPages">{pages.length}</span></div>
-      <button class="pager-btn" id="nextPage" type="button" title="Next page (→)">&#x25B6;</button>
+      <button class="pager-btn" id="nextPage" type="button" title="עמוד הבא (→)">&#x25B6;</button>
     </div>
 
     <footer class="mt-4 d-flex justify-content-between">
       {prev ? (
         <a class="btn btn-outline-light" href={withBase(`/comics/${prev.slug}/`)}>
-          <i class="bi bi-arrow-left"></i> {prev.data.title}
+          <i class="bi bi-arrow-right"></i> {prev.data.title}
         </a>
       ) : <span/>}
       {next ? (
         <a class="btn btn-outline-light" href={withBase(`/comics/${next.slug}/`)}>
-          {next.data.title} <i class="bi bi-arrow-right"></i>
+          {next.data.title} <i class="bi bi-arrow-left"></i>
         </a>
       ) : <span/>}
     </footer>
@@ -120,7 +132,7 @@ const imageAbs = new URL(coverSrc, Astro.url).href;
     {JSON.stringify({
       "@context": "https://schema.org",
       "@type": "ComicSeries",
-      "name": "Compass World — Comics",
+      "name": "עולם המצפן — קומיקס",
       "hasPart": {
         "@type": "ComicIssue",
         "issueNumber": entry.data.number,
@@ -223,14 +235,10 @@ const imageAbs = new URL(coverSrc, Astro.url).href;
       transition: opacity .35s ease, transform .35s ease, filter .35s ease;
       background: #111;
     }
-    .page-img.in {
-      opacity: 1;
-      transform: none;
-    }
+    .page-img.in { opacity: 1; transform: none; }
+
     /* Subtle flash (crossfade hint) when navigating via pager/keys */
-    .page-img.flash {
-      animation: pageFlash .22s ease;
-    }
+    .page-img.flash { animation: pageFlash .22s ease; }
     @keyframes pageFlash {
       from { filter: brightness(0.88); }
       to   { filter: brightness(1); }
@@ -267,5 +275,10 @@ const imageAbs = new URL(coverSrc, Astro.url).href;
     .pager-btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.1); }
     .pager-btn:disabled { opacity: .4; cursor: not-allowed; }
     .pager-count { color: #ddd; font-weight: 600; min-width: 64px; text-align: center; }
+    .btn-display-he{
+        font-family: var(--font-display-he);
+        font-weight: 800;
+        letter-spacing: .02em;
+      }
   </style>
 </BaseLayout>

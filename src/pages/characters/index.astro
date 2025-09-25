@@ -2,21 +2,47 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 const list = await getCollection('characters');
+
+// BASE בטוח לתתי־נתיבים (למשל /compass-world-astro/)
+const BASE = import.meta.env.BASE_URL || '/';
+const withBase = (p = '') =>
+  p.startsWith('http')
+    ? p
+    : `${BASE.replace(/\/$/, '')}${p.startsWith('/') ? p : `/${p}`}`;
 ---
-<BaseLayout title="Characters | Compass World">
+<BaseLayout title="דמויות | עולם המצפן">
   <section class="container py-4">
-    <h1 class="h3 mb-4">Characters</h1>
+    <h1 class="h3 mb-4">דמויות</h1>
     <div class="row g-4">
       {list.map((c) => (
-        <div class="col-12 col-md-6 col-lg-4" >
-          <a class="card p-3 h-100 d-block will-animate" href={`/characters/${c.slug}/`}>
+        <div class="col-12 col-md-6 col-lg-4">
+          <a
+            class="card p-3 h-100 d-block will-animate"
+            href={withBase(`/characters/${c.slug}/`)}
+          >
             <h2 class="h5 text-white mb-1">{c.data.name}</h2>
             {c.data.team && <small class="text-white-50">{c.data.team}</small>}
-            {c.data.image && <img src={c.data.image} alt={c.data.name} class="img-cover mt-2" loading="lazy" />}
+            {c.data.image && (
+              <img
+                src={withBase(c.data.image)}
+                alt={c.data.name}
+                class="img-cover mt-2"
+                loading="lazy"
+              />
+            )}
             <p class="text-white-50 mt-2 mb-0">{c.data.summary}</p>
           </a>
         </div>
       ))}
     </div>
   </section>
+
+  <style>
+    .img-cover {
+      object-fit: cover;
+      width: 100%;
+      height: 200px;
+      border-radius: 0.75rem;
+    }
+  </style>
 </BaseLayout>

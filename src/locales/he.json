@@ -1,5 +1,16 @@
 {
   "siteName": "עולם המצפן",
+  "siteDescription": "יקום רעיונות חי של גיא ברכה — דמויות, תקופות ומסתורי הקוסמוס.",
+  "nav": {
+    "comics": "קומיקס",
+    "characters": "דמויות",
+    "history": "ציר זמן",
+    "atlas": "אטלס",
+    "primeChildren": "ילדי פריים",
+    "villains": "נבלים",
+    "gallery": "גלריה",
+    "about": "אודות"
+  },
   "home": {
     "eyebrow": "ויקי יקום",
     "title": "עולם המצפן",

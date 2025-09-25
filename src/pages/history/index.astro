@@ -8,7 +8,7 @@ const list = await getCollection('history');
 const BASE = import.meta.env.BASE_URL || "/";
 const withBase = (p = "") =>
   p && !/^https?:\/\//i.test(p)
-    ? `${BASE}${String(p).replace(/^\/+/, "")}` // מונע //
+    ? `${BASE}${String(p).replace(/^\/+/, "")}` // מונע כפילות //
     : p || "";
 
 // ממיר "750BC", "200 CE", "c. 150 bc", "700–600 BC" וכו' למספר; BC שלילי
@@ -33,9 +33,9 @@ const sorted = [...list].sort((a, b) => {
 const PLACEHOLDER = withBase('/images/avatar-placeholder.svg');
 ---
 
-<BaseLayout title="Chronology | Compass World">
+<BaseLayout title="כרונולוגיה | עולם המצפן">
   <section class="container py-4">
-    <h1 class="h3 mb-4">Chronology</h1>
+    <h1 class="h3 mb-4">כרונולוגיה</h1>
     <div class="row g-4">
       {sorted.map((h) => {
         const href = withBase(`history/${h.slug}/`);

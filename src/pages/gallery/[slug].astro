@@ -30,9 +30,8 @@ if (!entry) {
   throw new Error(`Gallery item not found: ${slug}`);
 }
 
-const data = entry.data;                // ← frontmatter האמיתי
-const { Content } = await entry.render(); // ← גוף התוכן
-
+const data = entry.data;                 // frontmatter
+const { Content } = await entry.render(); // MD/MDX body
 
 /* ---------- image (string or ImageMetadata) ---------- */
 const rawImg = data.image;
@@ -49,22 +48,22 @@ if (typeof rawImg === 'string') {
 }
 
 /* ---------- fields ---------- */
-const title   = (data.title ?? slug).toString();
-const caption = (data.caption ?? '').toString();
-const tags    = Array.isArray(data.tags) ? data.tags : [];
+const title     = (data.title ?? slug).toString();
+const caption   = (data.caption ?? '').toString();
+const tags      = Array.isArray(data.tags) ? data.tags : [];
 const sourceUrl = withBase((data.sourceUrl ?? '').toString());
 const updated   = (data.updated ?? '').toString();
 
 /* ---------- prev/next ---------- */
-const all = (await getCollection('gallery')).sort((a, b) => a.slug.localeCompare(b.slug));
-const idx = all.findIndex((i) => i.slug === slug);
+const all  = (await getCollection('gallery')).sort((a, b) => a.slug.localeCompare(b.slug));
+const idx  = all.findIndex((i) => i.slug === slug);
 const prev = idx > 0 ? all[idx - 1] : null;
 const next = idx < all.length - 1 ? all[idx + 1] : null;
 ---
 
-<BaseLayout title={`${title} | Gallery`} description={caption}>
+<BaseLayout title={`${title} | גלריה`} description={caption}>
   <section class="container py-5" data-reveal data-base={BASE}>
-    <a href={withBase('/gallery/')} class="text-white-50">← Back to Gallery</a>
+    <a href={withBase('/gallery/')} class="text-white-50">← חזרה לגלריה</a>
 
     <div class="row g-4 mt-2">
       <div class="col-lg-6">
@@ -80,7 +79,7 @@ const next = idx < all.length - 1 ? all[idx + 1] : null;
           />
         </div>
         {caption && <p class="text-white-50 small mt-3 mb-0">{caption}</p>}
-        {updated && <p class="text-white-50 small mt-1 mb-0">Updated: {updated}</p>}
+        {updated && <p class="text-white-50 small mt-1 mb-0">עודכן: {updated}</p>}
       </div>
 
       <div class="col-lg-6">
@@ -95,7 +94,7 @@ const next = idx < all.length - 1 ? all[idx + 1] : null;
         {sourceUrl && (
           <p class="mb-4">
             <a href={sourceUrl} target="_blank" rel="noopener" class="btn btn-outline-warning btn-sm">
-              Source
+              מקור
             </a>
           </p>
         )}
@@ -108,7 +107,7 @@ const next = idx < all.length - 1 ? all[idx + 1] : null;
       </div>
     </div>
 
-    {/* prev/next navigation */}
+    {/* ניווט פריט קודם/הבא */}
     <div class="d-flex justify-content-between align-items-center mt-5 pt-4 border-top border-secondary-subtle">
       <div>
         {prev ? (
@@ -127,7 +126,7 @@ const next = idx < all.length - 1 ? all[idx + 1] : null;
     .pc-glow { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
   </style>
 
-  {/* אופציונלי: תיקון קישורים יחסיים בתוך MDX */}
+  {/* אופציונלי: תיקון קישורים/תמונות יחסיים בתוך ה-MDX */}
   <script is:inline>
     (() => {
       const root = document.getElementById('mdx-content');

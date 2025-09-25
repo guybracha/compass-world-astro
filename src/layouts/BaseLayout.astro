@@ -1,27 +1,29 @@
 ---
 import "../styles/custom.css";
 import SEO from "../components/SEO.astro";
+import { t } from "../lib/i18n";
+
+// שפה קבועה: עברית
+const lang = 'he';
 
 const {
-  title = "Compass World",
-  description = "A universe of ideas by Guy Bracha",
+  title = t(lang, "siteName") || "עולם המצפן",
+  description = t(lang, "siteDescription") || "יקום רעיונות חי של גיא ברכה",
   image = "/legacy/gallery/compass-alliance-artwork.webp"
 } = Astro.props;
 
-// נרמול BASE שיסתיים ב"/"
+// BASE
 const RAW_BASE = import.meta.env.BASE_URL ?? "/";
 const BASE = RAW_BASE.endsWith("/") ? RAW_BASE : `${RAW_BASE}/`;
-
-// צירוף נתיבים פנימיים ל-BASE (לא נוגעים בקישורים חיצוניים)
 const withBase = (p = "") => {
   if (!p) return BASE;
   if (/^(https?:)?\/\//i.test(p) || /^mailto:|^tel:/i.test(p)) return p;
   const clean = p.replace(/^\/+/, "");
-  return `${BASE}${clean}`; // בלי החלפה גלובלית כדי לא לשבור https://
+  return `${BASE}${clean}`;
 };
 ---
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -30,45 +32,57 @@ const withBase = (p = "") => {
       title={title}
       description={description}
       image={image}
-      siteName="Compass World"
-      locale="en_US"
+      siteName={t(lang, "siteName") || "עולם המצפן"}
+      locale="he_IL"
       twitter={{ card: "summary_large_image", site: "@GuyBracha" }}
     />
 
     <slot name="head" />
     <link rel="icon" type="image/png" href={withBase("/legacy/prime-children-hero.png")} />
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
-          crossorigin="anonymous">
+    <!-- Fonts: Heebo לטקסט, Secular One לכותרות -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&family=Secular+One&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet" crossorigin="anonymous" />
 
     <style>
-      :root { --brand: #ffb703; }
-      body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; background: #0b0b0b; color: #e5e7eb; }
+      :root {
+        --brand: #ffb703;
+        --font-sans: "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+        --font-display-he: "Secular One", "Heebo", sans-serif;
+      }
+      body {
+        font-family: var(--font-sans);
+        background: #0b0b0b; color: #e5e7eb;
+        direction: rtl; text-align: right;
+      }
       a { text-decoration: none; }
       .brand { color: var(--brand); }
       .card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); }
       .img-cover { object-fit: cover; width: 100%; height: 200px; border-radius: 0.75rem; }
       .will-animate { will-change: transform, opacity; }
       .navbar-toggler { border-color: rgba(255,255,255,.3); }
-      /* ---- Compass World animated brand ---- */
+
+      /* Brand anim */
       .navbar-brand.brand-anim { display: inline-block; line-height: 1; animation: cw-pop .6s ease-out both; }
-      .cw-word{ position: relative; display: inline-block; background: linear-gradient(90deg,#ffffff, var(--brand), #00d4ff 60%, #a855f7); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cw-shine 6s linear infinite; letter-spacing: .2px; }
+      .cw-word{ position: relative; display: inline-block; background: linear-gradient(90deg,#ffffff,var(--brand),#00d4ff 60%,#a855f7); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: cw-shine 6s linear infinite; letter-spacing: .2px; }
       .cw-accent{ filter: drop-shadow(0 0 10px rgba(255,183,3,.25)); animation-delay: .6s; }
       .navbar-brand.brand-anim:hover .cw-word{ animation-duration: 2.4s; transform: translateY(-1px); transition: transform .2s ease; }
       @keyframes cw-shine{ 0%{background-position:0% 50%} 100%{background-position:200% 50%} }
       @keyframes cw-pop{ 0%{opacity:0;transform:translateY(-6px) scale(.98)} 100%{opacity:1;transform:none} }
+
+      /* LTR חריגים */
+      pre, code, kbd, samp, .ltr-block { direction: ltr; unicode-bidi: bidi-override; text-align: left; }
+
+      /* כותרות בעברית – פונט תצוגה */
+      .font-display-he { font-family: var(--font-display-he); font-weight: 900; letter-spacing: .02em; }
     </style>
 
     {import.meta.env.MODE === "production" && (
       <>
-        <!-- Google tag (gtag.js) -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-XQXW42MC8Z"></script>
         <script>
           window.dataLayer = window.dataLayer || [];
@@ -84,9 +98,9 @@ const withBase = (p = "") => {
       <nav class="navbar navbar-expand-lg navbar-dark" style="background: transparent;">
         <div class="container">
           <!-- Brand -->
-          <a href={withBase("/")} class="navbar-brand fw-bold brand-anim" aria-label="Compass World">
-            <span class="cw-word">Compass</span>
-            <span class="cw-word cw-accent">World</span>
+          <a href={withBase("/")} class="navbar-brand fw-bold brand-anim" aria-label="עולם המצפן">
+            <span class="cw-word">עולם</span>
+            <span class="cw-word cw-accent">המצפן</span>
           </a>
 
           <!-- Toggler -->
@@ -97,7 +111,7 @@ const withBase = (p = "") => {
             data-bs-target="#mainNav"
             aria-controls="mainNav"
             aria-expanded="false"
-            aria-label="Toggle navigation"
+            aria-label="פתיחת תפריט"
           >
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -105,14 +119,15 @@ const withBase = (p = "") => {
           <!-- Collapse -->
           <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto gap-lg-2">
-              <li class="nav-item"><a class="nav-link" href={withBase("/comics/")}>Comics</a></li>
-              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/characters/")}>Characters</a></li>
-              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/history/")}>History</a></li>
-              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/atlas/")}>Atlas</a></li>
-              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/prime-children/")}>Prime-Children</a></li>
-              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/villains/")}>Villains</a></li>
-              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/gallery/")}>Gallery</a></li>
-              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/about/")}>About</a></li>
+              <li class="nav-item"><a class="nav-link" href={withBase("/comics/")}>קומיקס</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/characters/")}>דמויות</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/history/")}>ציר זמן</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/atlas/")}>אטלס</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/prime-children/")}>ילדי פריים</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/villains/")}>נבלים</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/gallery/")}>גלריה</a></li>
+              <li class="nav-item"><a class="nav-link text-white-50" href={withBase("/about/")}>אודות</a></li>
+              <!-- אין מתג שפה -->
             </ul>
           </div>
         </div>
@@ -125,43 +140,27 @@ const withBase = (p = "") => {
 
     <footer class="py-5 border-top border-secondary-subtle">
       <div class="container d-flex justify-content-between flex-wrap gap-3">
-        <a href="https://guybracha.github.io/compass-world/" class="btn btn-outline-light btn-sm">Legacy Site</a>
+        <a href="https://guybracha.github.io/compass-world/" class="btn btn-outline-light btn-sm">האתר הישן</a>
         <small class="text-white-50">© {new Date().getFullYear()} Guy Bracha</small>
-        <a href="mailto:guy.bracha@gmail.com" class="btn btn-outline-light btn-sm">Email</a>
+        <a href="mailto:guy.bracha@gmail.com" class="btn btn-outline-light btn-sm">אימייל</a>
       </div>
     </footer>
 
-    <!-- 1) Bootstrap Bundle (UMD) -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-      defer
-    ></script>
-
-    <!-- 2) GSAP (CDN) - אחרי Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/ScrollTrigger.min.js" defer></script>
-
-    <!-- 3) סקריפט מקומי (public) עם BASE -->
     <script src={withBase("/scripts/gsap-init.js")} defer></script>
 
-    <!-- 4) פלייבק אם Bootstrap לא נטען -->
+    <!-- פלייבק אם Bootstrap לא נטען -->
     <script defer>
       window.addEventListener('DOMContentLoaded', () => {
         try {
-          if (window.bootstrap) return; // הכל טוב
+          if (window.bootstrap) return;
           console.warn('Bootstrap NOT detected – enabling minimal navbar fallback');
           const toggler = document.querySelector('.navbar-toggler');
           const menu = document.getElementById('mainNav');
-          if (toggler && menu) {
-            toggler.addEventListener('click', () => {
-              menu.classList.toggle('show');
-            });
-          }
-        } catch (e) {
-          console.warn('Navbar fallback failed:', e);
-        }
+          if (toggler && menu) toggler.addEventListener('click', () => menu.classList.toggle('show'));
+        } catch (e) { console.warn('Navbar fallback failed:', e); }
       });
     </script>
   </body>

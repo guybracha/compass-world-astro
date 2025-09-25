@@ -23,21 +23,33 @@ const Content = rendered?.Content;
 const title = (data.title ?? slug).toString();
 const region = (data.region ?? '').toString();
 const description = (data.description ?? '').toString();
-const image = data.image ?? '/images/avatar-placeholder.svg'; // fallback
+const image = data.image ?? '/images/avatar-placeholder.svg'; // ברירת מחדל
+
+// ✅ תמיכה ב־BASE_URL
+const BASE = import.meta.env.BASE_URL || "/";
+const withBase = (p = "") =>
+  p.startsWith("http")
+    ? p
+    : `${BASE.replace(/\/$/, "")}${p.startsWith("/") ? p : `/${p}`}`;
 ---
 
-<BaseLayout title={`${title} | Atlas`} description={description}>
+<BaseLayout title={`${title} | אטלס`} description={description}>
   <section class="container py-5" data-reveal>
-    <a href="/atlas/" class="text-white-50">← Back</a>
+    <a href={withBase("/atlas/")} class="text-white-50">← חזרה לאטלס</a>
 
     <div class="row g-4 mt-2">
       <div class="col-lg-5">
-        <img src={image} alt={title} class="img-fluid rounded-3 shadow-sm parallax" loading="lazy" />
+        <img 
+          src={image} 
+          alt={title} 
+          class="img-fluid rounded-3 shadow-sm parallax" 
+          loading="lazy" 
+        />
       </div>
 
       <div class="col-lg-7">
         <h1 class="h3">{title}</h1>
-        {region && <p class="text-white-50 mb-2">Region: {region}</p>}
+        {region && <p class="text-white-50 mb-2">אזור: {region}</p>}
         {description && <p class="text-white-50">{description}</p>}
         {Content && (
           <article class="text-white-80 mt-3">

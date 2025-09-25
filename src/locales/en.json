@@ -1,5 +1,16 @@
 {
   "siteName": "Compass World",
+  "siteDescription": "A living sci-fi/fantasy universe by Guy Bracha — explore characters, eras, and cosmic mysteries.",
+  "nav": {
+    "comics": "Comics",
+    "characters": "Characters",
+    "history": "History",
+    "atlas": "Atlas",
+    "primeChildren": "Prime-Children",
+    "villains": "Villains",
+    "gallery": "Gallery",
+    "about": "About"
+  },
   "home": {
     "eyebrow": "Universe Wiki",
     "title": "Compass World",

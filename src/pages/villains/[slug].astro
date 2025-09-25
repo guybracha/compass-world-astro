@@ -4,50 +4,75 @@ import { getEntryBySlug, getCollection } from "astro:content";
 
 export const prerender = true;
 
-// בונים את רשימת הנתיבים הסטטיים (מונע 404 בזמן build)
+// בונים את כל הנתיבים ל־villains
 export async function getStaticPaths() {
-  const villains = await getCollection("villains"); // שם הקולקציה בקונפיג
+  const villains = await getCollection("villains");
   return villains.map(({ slug }) => ({ params: { slug } }));
 }
 
 const { slug } = Astro.params;
-
-// שולפים את הרשומה בבטחה
 const entry = await getEntryBySlug("villains", slug);
 
-// אם לא נמצאה רשומה — הפניה ל־404 (או החזר טקסט מותאם)
+// אם לא נמצאה רשומה — החזר 404 אמיתי
 if (!entry) {
-  return Astro.redirect("/404");
+  return new Response(`Villain not found: ${slug}`, { status: 404 });
 }
 
-// הגנות + ברירות מחדל
-const data = entry.data ?? {};
-const pageTitle = data.title ?? slug?.replace(/-/g, " ") ?? "Unknown Villain";
-const description = data.description ?? "";
-const image = data.image ?? "/legacy/gallery/compass-alliance-artwork.webp";
+const { Content, data } = await entry.render();
+
+// ברירות מחדל
+const pageTitle = data?.title ?? slug?.replace(/-/g, " ") ?? "נבל לא ידוע";
+const description = data?.description ?? "";
+const image = data?.image ?? "/legacy/gallery/compass-alliance-artwork.webp";
+
+// ✅ תמיכה ב־BASE
+const BASE = import.meta.env.BASE_URL || "/";
+const withBase = (p = "") =>
+  p && !/^https?:\/\//i.test(p)
+    ? `${BASE}${String(p).replace(/^\/+/, "")}`
+    : p || "";
+
+const backHref = withBase("villains/");
+const imgSrc = withBase(image);
 ---
 
 <BaseLayout
-  title={`Compass World | ${pageTitle}`}
+  title={`${pageTitle} | נבלים`}
   description={description}
-  image={image}
+  image={imgSrc}
 >
-  <article class="container">
-    <header class="my-4">
-      <h1 class="display-5">{pageTitle}</h1>
-      {description && <p class="lead">{description}</p>}
+  <article class="container py-4">
+    <a href={backHref} class="text-white-50 text-decoration-none d-inline-block mb-3">
+      ← חזרה לנבלים
+    </a>
+
+    <header class="my-3 text-center">
+      <h1 class="display-6 font-display-he">{pageTitle}</h1>
+      {description && <p class="lead text-white-50">{description}</p>}
     </header>
 
     {image && (
       <img
-        src={image}
+        src={imgSrc}
         alt={pageTitle}
-        class="img-fluid rounded mb-4"
+        class="img-fluid rounded-3 shadow-sm mb-4 d-block mx-auto"
         loading="eager"
+        decoding="async"
       />
     )}
 
-    <!-- גוף התוכן מה-MD/MDX -->
-    <Fragment set:html={entry.body} />
+    {Content && (
+      <section id="villain-mdx"
+               class="prose text-white-80 mx-auto"
+               style="max-width: 860px;"
+               data-root={BASE}
+               data-fallback={withBase("images/avatar-placeholder.svg")}>
+        <Content />
+      </section>
+    )}
   </article>
+
+  <style>
+    .prose img { display:block; max-width:100%; height:auto; }
+  </style>
 </BaseLayout>

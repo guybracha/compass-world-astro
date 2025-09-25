@@ -17,32 +17,57 @@ const entry = await getEntryBySlug('characters', slug);
 if (!entry) throw new Error(`Character not found: ${slug}`);
 
 const { Content, data } = await entry.render();
-const pageTitle = `${data?.name ?? entry.slug} | Compass World`;
-const pageDesc  = data?.summary ?? `Profile page for ${data?.name ?? entry.slug}.`;
----
 
+// כותרת/תיאור בעברית
+const pageTitle = `${data?.name ?? entry.slug} | עולם המצפן`;
+const pageDesc  = data?.summary ?? `דף פרופיל עבור ${data?.name ?? entry.slug}.`;
+
+// תמיכה ב־BASE_URL (למשל /compass-world-astro/)
+const BASE = import.meta.env.BASE_URL || '/';
+const withBase = (p = '') =>
+  p.startsWith('http')
+    ? p
+    : `${BASE.replace(/\/$/, '')}${p.startsWith('/') ? p : `/${p}`}`;
+---
 <BaseLayout title={pageTitle} description={pageDesc}>
   <section class="container py-4" data-reveal>
-    <a href="/characters/" class="text-white-50">← Back</a>
+    <a href={withBase('/characters/')} class="text-white-50 text-decoration-none">
+      <i class="bi bi-arrow-right-short"></i> חזרה לדמויות
+    </a>
 
     <div class="row mt-3 g-4">
       <div class="col-lg-4">
-        {data?.image && <img src={data.image} alt={data.name} class="img-fluid rounded-3 shadow-sm will-animate" />}
+        {data?.image && (
+          <img
+            src={withBase(data.image)}
+            alt={data.name}
+            class="img-fluid rounded-3 shadow-sm will-animate"
+            loading="lazy"
+            decoding="async"
+          />
+        )}
         {Array.isArray(data?.tags) && data.tags.length > 0 && (
           <div class="mt-3 d-flex flex-wrap gap-2">
-            {data.tags.map((t) => <span class="badge bg-secondary">{t}</span>)}
+            {data.tags.map((t) => (
+              <span class="badge bg-secondary-subtle text-secondary-emphasis">{t}</span>
+            ))}
           </div>
         )}
       </div>
 
       <div class="col-lg-8">
-        <h1 class="h3">{data?.name ?? entry.slug}</h1>
-        {data?.team && <p class="text-white-50 mb-1">Team: {data.team}</p>}
-        {data?.role && <p class="text-white-50 mb-3">Role: {data.role}</p>}
+        <h1 class="h3 font-display-he">{data?.name ?? entry.slug}</h1>
+        {data?.team && <p class="text-white-50 mb-1">צוות: {data.team}</p>}
+        {data?.role && <p class="text-white-50 mb-3">תפקיד: {data.role}</p>}
         <article class="prose text-white-80">
           <Content />
         </article>
       </div>
     </div>
   </section>
+
+  <style>
+    /* תמונות */
+    .prose img { max-width: 100%; height: auto; }
+  </style>
 </BaseLayout>

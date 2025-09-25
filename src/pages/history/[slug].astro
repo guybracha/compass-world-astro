@@ -5,7 +5,7 @@ import { getEntryBySlug, getCollection } from "astro:content";
 
 export const prerender = true;
 
-// תמיכה בתת-נתיב (GitHub Pages וכו’)
+// ✅ תמיכה בתת-נתיב (GitHub Pages וכו’)
 const BASE = import.meta.env.BASE_URL || "/";
 const withBase = (p = "") =>
   p && !p.startsWith("http")
@@ -42,14 +42,14 @@ const yearLabel = prettyYear(slug, data?.year);
 const desc = data?.description ?? "";
 
 const LINK_BACK = withBase("/history/");
-const PLACEHOLDER = withBase("/assets/placeholders/history.webp");
+const PLACEHOLDER = withBase("/images/avatar-placeholder.svg"); // יישור לקבצי הפלייסהולדר הגלובליים
 ---
-<BaseLayout title={`${yearLabel} | Chronology`} class="dark">
+<BaseLayout title={`${yearLabel} | כרונולוגיה`} class="dark">
   <section class="container py-4">
-    <a href={LINK_BACK} class="text-white-50">← Back</a>
+    <a href={LINK_BACK} class="text-white-50 text-decoration-none">→ חזרה לכרונולוגיה</a>
 
     <header class="text-center my-3">
-      <h1 class="h3 mb-2">{yearLabel}</h1>
+      <h1 class="h3 mb-2 font-display-he">{yearLabel}</h1>
       {desc && <p class="text-white-50 m-0">{desc}</p>}
     </header>
 
@@ -58,39 +58,38 @@ const PLACEHOLDER = withBase("/assets/placeholders/history.webp");
          class="prose text-white-80 mx-auto"
          style="max-width: 860px;"
          data-root={BASE}
-         data-fallback={withBase('/images/avatar-placeholder.svg')}>
+         data-fallback={PLACEHOLDER}>
       <Content />
-      </article>
+    </article>
   </section>
 
   <style>
     .prose img { display:block; max-width:100%; height:auto; }
   </style>
 
- <script is:inline>
-  // מוסיף BASE לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback
-  (() => {
-    const host = document.getElementById('hist-mdx');
-    if (!host) return;
+  <script is:inline>
+    // מוסיף BASE לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback
+    (() => {
+      const host = document.getElementById('hist-mdx');
+      if (!host) return;
 
-    const ROOT = (host.dataset.root || "/").replace(/\/$/, "");
-    const PLACEHOLDER = host.dataset.fallback || "";
+      const ROOT = (host.dataset.root || "/").replace(/\/$/, "");
+      const PLACEHOLDER = host.dataset.fallback || "";
 
-    host.querySelectorAll('.prose img').forEach((img) => {
-      img.classList.add('img-fluid','rounded-3','shadow-sm','my-3','w-100');
-      img.loading = img.loading || 'lazy';
+      host.querySelectorAll('.prose img').forEach((img) => {
+        img.classList.add('img-fluid','rounded-3','shadow-sm','my-3','w-100');
+        img.loading = img.loading || 'lazy';
 
-      const src = img.getAttribute('src') || '';
-      if (src && !/^(?:[a-z]+:)?\/\//i.test(src)) {
-        const path = src.startsWith('/') ? src : `/${src}`;
-        img.src = `${ROOT}${path}`;
-      }
+        const src = img.getAttribute('src') || '';
+        if (src && !/^(?:[a-z]+:)?\/\//i.test(src)) {
+          const path = src.startsWith('/') ? src : `/${src}`;
+          img.src = `${ROOT}${path}`;
+        }
 
-      img.addEventListener('error', () => {
-        if (PLACEHOLDER) img.src = PLACEHOLDER;
-      }, { once: true });
-    });
-  })();
-</script>
-
+        img.addEventListener('error', () => {
+          if (PLACEHOLDER) img.src = PLACEHOLDER;
+        }, { once: true });
+      });
+    })();
+  </script>
 </BaseLayout>

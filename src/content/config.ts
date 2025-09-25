@@ -99,14 +99,16 @@ const history = defineCollection({
 const comics = defineCollection({
   type: "content",
   schema: z.object({
-    title: z.string(),
-    number: z.number().int().positive().describe("מספר הפרק"),
-    date: z.string().optional(), // YYYY-MM-DD
-    cover: z.string().describe("נתיב לתמונת קוואר (public/...)"),
-    summary: z.string().min(10),
-    tags: z.array(z.string()).default([]),
-    // רשימת עמודים/תמונות הפרק – נתיבים ל-public (למשל /comics/ep-001/001.webp)
-    pages: z.array(z.string()).min(1),
+    title: z.string(),                 // כותרת בעברית (חובה)
+    summary: z.string().optional(),    // תיאור קצר בעברית (אופציונלי)
+    number: z.number().int().optional(), // מספר פרק (אופציונלי)
+    date: z.string().optional(),       // תאריך ISO (YYYY-MM-DD) או כל מחרוזת תאריך
+    cover: z.string().optional(),      // נתיב עטיפה
+    pages: z.array(z.string()).default([]), // עמודי הקומיקס (נתיבים)
+    tags: z.array(z.string()).default([]),  // תגיות בעברית
+    // אופציונלי: שדות לאנגלית אם תרצה בעתיד, לא בשימוש כעת
+    title_en: z.string().optional(),
+    summary_en: z.string().optional(),
   }),
 });
 

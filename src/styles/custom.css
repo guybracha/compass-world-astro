@@ -233,3 +233,10 @@ header .brand { color: var(--brand); }
 .timeline-item img.parallax {
   border-radius: calc(var(--radius) - 6px);
 }
+
+/* כפתורי תצוגה בעברית */
+.btn-display-he{
+  font-family: var(--font-display-he);
+  font-weight: 800;
+  letter-spacing: .02em;
+}

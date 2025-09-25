@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { getCollection } from "astro:content";
+import { formatHeDate } from "../../lib/dates";
 
 export const prerender = true;
 
@@ -23,11 +24,11 @@ const comics = (await getCollection("comics"))
     return byNum !== 0 ? byNum : a.slug.localeCompare(b.slug);
   });
 ---
-<BaseLayout title="Compass World | Comics" class="dark">
+<BaseLayout title="עולם המצפן | קומיקס" class="dark">
   <section class="container-xxl py-5">
     <header class="mb-4 text-center">
-      <h1 class="display-5 fw-bold">Comics</h1>
-      <p class="text-secondary m-0">Explore the Compass World through episodic comics.</p>
+      <h1 class="display-5 fw-bold font-display-he">קומיקס</h1>
+      <p class="text-secondary m-0">גלו את עולם המצפן דרך פרקי קומיקס אפיזודיים.</p>
     </header>
 
     <div class="row g-4">
@@ -42,7 +43,7 @@ const comics = (await getCollection("comics"))
             >
               <img
                 src={cover}
-                alt={`Cover — ${data.title}`}
+                alt={`עטיפת קומיקס — ${data.title}`}
                 class="card-img-top object-cover"
                 loading="lazy"
                 decoding="async"
@@ -53,7 +54,7 @@ const comics = (await getCollection("comics"))
               />
               <div class="card-body">
                 {typeof data.number !== "undefined" && (
-                  <div class="small text-warning fw-semibold mb-1">Episode #{data.number}</div>
+                  <div class="small text-warning fw-semibold mb-1">פרק #{data.number}</div>
                 )}
                 <h2 class="h5 text-white mb-2">{data.title}</h2>
                 {data.summary && <p class="text-secondary small mb-2">{data.summary}</p>}
@@ -66,7 +67,7 @@ const comics = (await getCollection("comics"))
                 )}
               </div>
               <div class="card-footer bg-transparent border-0 pt-0 pb-3">
-                <span class="btn btn-brand btn-sm">Read</span>
+                <span class="btn btn-brand btn-sm btn-display-he">לקריאה</span>
               </div>
             </a>
           </div>
@@ -78,5 +79,12 @@ const comics = (await getCollection("comics"))
   <style>
     /* יחס תמונה עקבי גם אם המקור לא 16:9 */
     .object-cover { object-fit: cover; aspect-ratio: 16/9; }
+    /* כפתורי תצוגה בעברית */
+    /* כפתורי תצוגה בעברית */
+      .btn-display-he{
+        font-family: var(--font-display-he);
+        font-weight: 800;
+        letter-spacing: .02em;
+      }
   </style>
 </BaseLayout>

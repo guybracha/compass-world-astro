@@ -1,40 +1,72 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/home.css';
+import { t } from '../lib/i18n'; // עברית בלבד – משתמשים ישירות ב-he
+
+// BASE בטוח לתתי-נתיבים (כמו /compass-world-astro/)
+const RAW_BASE = import.meta.env.BASE_URL ?? '/';
+const BASE = RAW_BASE.endsWith('/') ? RAW_BASE : `${RAW_BASE}/`;
+
+// טקסטים בעברית
+const pageTitle = (t('he','siteName') || 'עולם המצפן') + ' | בית';
+const eyebrow   = t('he','home.eyebrow')  || 'ויקי יקום';
+const titleTxt  = t('he','home.title')    || 'עולם המצפן';
+const subtitle  = t('he','home.subtitle') || 'יקום חי של מד״ב ופנטזיה — דמויות, תקופות ומסתורי הקוסמוס.';
+
+const btnCharacters = t('he','home.buttons.characters') || 'דמויות';
+const btnChrono     = t('he','home.buttons.chronology') || 'כרונולוגיה';
+const btnGallery    = t('he','home.buttons.gallery')    || 'גלריה';
+const btnPrime      = t('he','nav.primeChildren')       || 'ילדי פריים';
 ---
-<BaseLayout title="Compass World | Home" class="dark">
+<BaseLayout title={pageTitle} class="dark">
+  <!-- טעינת פונטים: Heebo לטקסט, ו-Secular One לכותרת -->
+  <Fragment slot="head">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Secular+One&display=swap" rel="stylesheet" />
+    <style>
+      :root { --font-sans: "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+              --font-display-he: "Secular One", "Heebo", sans-serif; }
+      html, body { font-family: var(--font-sans); }
+      .font-display-he { font-family: var(--font-display-he); font-weight: 900; letter-spacing: .02em;
+                         text-shadow: 0 2px 0 rgba(0,0,0,.25), 0 6px 30px rgba(168,85,247,.25); }
+    </style>
+  </Fragment>
+
   <header class="cw-hero container-xxl">
     <div class="cw-hero__inner">
-      <div class="cw-hero__eyebrow will-animate">Universe Wiki</div>
+      <div class="cw-hero__eyebrow will-animate">{eyebrow}</div>
 
       <!-- ✨ טייטל עם אפקטים -->
-      <h1 class="cw-hero__title js-hero-title will-animate">
-        Compass World
+      <h1 class="cw-hero__title js-hero-title will-animate font-display-he">
+        {titleTxt}
       </h1>
 
       <p class="cw-hero__subtitle will-animate">
-        A living sci-fi/fantasy universe by Guy Bracha — explore characters, eras, and cosmic mysteries.
+        {subtitle}
       </p>
 
+      <!-- קישורים עם BASE כך שיעבדו תחת /compass-world-astro/ -->
       <div class="mt-3 d-flex flex-wrap justify-content-center gap-2 will-animate">
-        <a class="btn btn-brand btn-lg px-4" href="/characters/">
-          <i class="bi bi-people me-2"></i> Characters
+        <a class="btn btn-brand btn-lg px-4" href={`${BASE}characters/`}>
+          <i class="bi bi-people me-2"></i> {btnCharacters}
         </a>
-        <a class="btn btn-ghost btn-lg px-4" href="/history/">
-          <i class="bi bi-clock-history me-2"></i> Chronology
+        <a class="btn btn-ghost btn-lg px-4" href={`${BASE}history/`}>
+          <i class="bi bi-clock-history me-2"></i> {btnChrono}
         </a>
-        <a class="btn btn-outline-light btn-lg px-4" href="/prime-children/">
-          Prime-Children
+        <a class="btn btn-outline-light btn-lg px-4" href={`${BASE}prime-children/`}>
+          {btnPrime}
+        </a>
+        <a class="btn btn-outline-light btn-lg px-4" href={`${BASE}gallery/`}>
+          {btnGallery}
         </a>
       </div>
     </div>
   </header>
 
-  <!-- השאר העמוד שלך... -->
-
   <!-- ✨ אנימציות לטייטל -->
   <script is:inline>
-    // הופעת אלמנטים כללית (יש כבר will-animate אצלך)
     (() => {
       const els = document.querySelectorAll('.will-animate');
       const io = new IntersectionObserver((entries) => {
@@ -48,12 +80,10 @@ import '../styles/home.css';
       els.forEach(el => io.observe(el));
     })();
 
-    // ✨ אפקטים מיוחדים לכותרת
     (() => {
       const title = document.querySelector('.js-hero-title');
       if (!title) return;
 
-      // פרק לטקנים (אותיות) עבור stagger
       const text = title.textContent.trim();
       title.textContent = '';
       [...text].forEach((ch) => {
@@ -63,7 +93,6 @@ import '../styles/home.css';
         title.appendChild(span);
       });
 
-      // כאשר הטייטל נכנס – הפעל stagger + shimmer + underline
       const io = new IntersectionObserver((entries) => {
         const e = entries[0];
         if (!e?.isIntersecting) return;
@@ -71,10 +100,9 @@ import '../styles/home.css';
 
         const letters = title.querySelectorAll('.tch');
         letters.forEach((el, i) => {
-          setTimeout(() => el.classList.add('in'), i * 25); // מהירות הסטאגר
+          setTimeout(() => el.classList.add('in'), i * 25);
         });
 
-        // כבה את השימר אחרי סיבוב אחד
         setTimeout(() => title.classList.remove('shimmer'), 1600);
         io.disconnect();
       }, { threshold: 0.6 });
@@ -83,23 +111,19 @@ import '../styles/home.css';
   </script>
 
   <style>
-    /* הופעת בסיס לכל will-animate */
     .will-animate { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
     .will-animate.in { opacity: 1; transform: none; }
 
-    /* ===== Hero Title Effects ===== */
+    /* ===== Hero Title Effects (שומר את הגרדיאנט והקו) ===== */
     .cw-hero__title {
       position: relative;
       font-weight: 800;
       line-height: 1.04;
       letter-spacing: .5px;
-      /* טקסט עם גרדיאנט – ייחשף באנימציה */
       background: linear-gradient(90deg, #eaecef, #ffffff 35%, #a6d3ff 60%, #ffffff);
       -webkit-background-clip: text; background-clip: text; color: transparent;
       background-size: 200% 100%;
     }
-
-    /* קו הדגשה צבעוני שנסחף לאחר החשיפה */
     .cw-hero__title::after {
       content: "";
       position: absolute;
@@ -112,14 +136,12 @@ import '../styles/home.css';
     }
     .cw-hero__title.reveal::after { width: 100%; }
 
-    /* שימר קצר על הגרדיאנט */
     @keyframes shimmer {
       from { background-position: 0% 50%; filter: drop-shadow(0 6px 24px rgba(0,0,0,.25)); }
       to   { background-position: 100% 50%; filter: drop-shadow(0 10px 34px rgba(0,0,0,.35)); }
     }
     .cw-hero__title.shimmer { animation: shimmer 1.4s ease-out both; }
 
-    /* אות-אות: מצב התחלה */
     .cw-hero__title .tch {
       display: inline-block;
       opacity: 0;
@@ -127,14 +149,12 @@ import '../styles/home.css';
       filter: blur(2px);
       transition: opacity .4s ease, transform .4s ease, filter .4s ease;
     }
-    /* אות-אות: כניסה */
     .cw-hero__title .tch.in {
       opacity: 1;
       transform: none;
       filter: none;
     }
 
-    /* קצת מרווח להירו */
     .cw-hero { padding-top: 5rem; padding-bottom: 2rem; }
     .cw-hero__eyebrow { text-transform: uppercase; letter-spacing: .15em; font-size: .8rem; color: #bbb; }
     .cw-hero__subtitle { color: #bfc6cf; max-width: 880px; margin: .75rem auto 0; }

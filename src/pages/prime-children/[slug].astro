@@ -23,25 +23,15 @@ const BASE = RAW_BASE.endsWith("/") ? RAW_BASE : `${RAW_BASE}/`;
 const withBase = (p: unknown = ""): string => {
   const s = String(p || "");
   if (!s) return BASE;
-
-  // חיצוני / סכימות מיוחדות – אל תיגע
   if (/^(?:[a-z]+:)?\/\//i.test(s) || /^data:/i.test(s) || /^mailto:|^tel:/i.test(s)) return s;
-
-  // אם כבר מתחיל ב־BASE (עם/בלי סלאש מוביל) – תחזיר כמו שהוא
-  const baseNoLead = BASE.replace(/^\//, ""); // e.g. 'compass-world-astro/'
+  const baseNoLead = BASE.replace(/^\//, "");
   if (s.startsWith(BASE) || s.startsWith(`/${baseNoLead}`)) return s;
-
-  // אם מתחיל בסלאש – הצמד ל־BASE
   if (s.startsWith("/")) return `${BASE}${s.slice(1)}`;
-
-  // יחסי → הצמד ל־BASE
   return `${BASE}${s}`;
 };
 
 /** toImg:
- * מקבל ערך מה־frontmatter (שם קובץ או נתיב)
- * אם זה שם קובץ בלבד → נוסיף את התקייה שלך '/legacy/prime-children'
- * ואז נעביר דרך withBase.
+ * אם זה שם קובץ בלבד → נוסיף '/legacy/prime-children' ואז נעביר דרך withBase
  */
 const IMAGES_ROOT = "/legacy/prime-children";
 const toImg = (p: unknown, fallback = "/images/avatar-placeholder.svg"): string => {
@@ -78,19 +68,20 @@ const data: any = rendered.data ?? {};
  *  Normalized fields
  *  ========================= */
 const name    = data.name ?? data.title ?? slug;
-const summary = data.summary ?? data.short ?? "Profile coming soon.";
+const summary = data.summary ?? data.short ?? "הפרופיל יתווסף בקרוב.";
 const tags    = Array.isArray(data.tags) ? data.tags : [];
-const sideTag = (data.side ?? tags.find((t: string) => /^(hero|villain)$/i.test(String(t)))) ?? "";
+const sideRaw = (data.side ?? tags.find((t: string) => /^(hero|villain|גיבור|נבל)$/i.test(String(t)) )) ?? "";
 
-// תמונת hero + fallback (הכרזה יחידה כאן!)
+// תרגום צד לתצוגה + צבע תגית
+const sideKind = String(sideRaw).toLowerCase();
+const isVillain = sideKind === "villain" || sideKind === "נבל";
+const isHero    = sideKind === "hero"    || sideKind === "גיבור";
+const sideText  = isVillain ? "נבל" : (isHero ? "גיבור" : (sideRaw ? String(sideRaw) : "")); // שומר טקסט אם מותאם אישית
+
 // תמונת hero + fallback
 const FALLBACK_IMG = withBase("/images/avatar-placeholder.svg");
-
-// אם יש portrait/image ב-frontmatter – נשתמש בו.
-// אחרת ננסה אוטומטית תמונה בשם ה-slug בתוך /legacy/prime-children/<slug>.webp
 const CANDIDATE_FROM_FRONTMATTER = data.portrait || data.image || "";
 const CANDIDATE_BY_SLUG = `/legacy/prime-children/${slug}.webp`;
-
 const heroImg = toImg(
   CANDIDATE_FROM_FRONTMATTER || CANDIDATE_BY_SLUG,
   "/images/avatar-placeholder.svg"
@@ -117,9 +108,9 @@ const links = rawLinks
 const BACK_TO = withBase("prime-children/");
 ---
 
-<BaseLayout title={`${name} | Prime-Children`} class="dark">
+<BaseLayout title={`${name} | ילדי פריים`} class="dark">
   <main class="container py-5 text-slate-100">
-    <a href={BACK_TO} class="text-white-50 d-inline-block mb-3">← Back to roster</a>
+    <a href={BACK_TO} class="text-white-50 d-inline-block mb-3">→ חזרה לרשימה</a>
 
     <article class="grid gap-4 md:grid-cols-[280px,1fr]">
       <div>
@@ -131,20 +122,20 @@ const BACK_TO = withBase("prime-children/");
           class="img-fluid rounded-3 border border-white/10 w-100"
           onerror={`this.onerror=null;this.src='${FALLBACK_IMG}';`}
         />
-        {sideTag && (
+        {sideText && (
           <div class="mt-3">
-            <span class={`badge ${String(sideTag).toLowerCase()==="villain" ? "bg-danger" : "bg-success"}`}>{String(sideTag)}</span>
+            <span class={`badge ${isVillain ? "bg-danger" : isHero ? "bg-success" : "bg-secondary"}`}>{sideText}</span>
           </div>
         )}
       </div>
 
       <section>
-        <h1 class="h3 m-0">{name}</h1>
+        <h1 class="h3 m-0 font-display-he">{name}</h1>
         {summary && <p class="mt-3">{summary}</p>}
 
         {powers.length > 0 && (
           <div class="mt-3">
-            <h2 class="h5 mb-1">Powers</h2>
+            <h2 class="h5 mb-1">כוחות</h2>
             <ul class="mt-2 list-disc list-inside">
               {powers.map((p) => <li>{p}</li>)}
             </ul>
@@ -159,7 +150,7 @@ const BACK_TO = withBase("prime-children/");
 
         {links.length > 0 && (
           <div class="mt-3">
-            <h2 class="h5 mb-1">Links</h2>
+            <h2 class="h5 mb-1">קישורים</h2>
             <ul class="mt-2">
               {links.map((l) => (
                 <li>
@@ -181,7 +172,7 @@ const BACK_TO = withBase("prime-children/");
 
     {Content && (
       <section class="mt-5">
-        <h2 class="h5 mb-3">Profile</h2>
+        <h2 class="h5 mb-3">פרופיל</h2>
         {/** מעבירים ROOT/FALLBACK כ-data-* כדי שהסקריפט יעבוד בלי import.meta */}
         <article id="pc-mdx" class="prose text-white-80 mx-auto"
                  style="max-width: 860px;"
@@ -198,7 +189,7 @@ const BACK_TO = withBase("prime-children/");
   </style>
 
   <script is:inline>
-    // מוסיף BASE_URL לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback (ללא import.meta)
+    // מוסיף BASE_URL לתמונות יחסיות בתוך גוף ה-MDX + lazy + fallback
     (() => {
       const host = document.getElementById('pc-mdx');
       if (!host) return;
