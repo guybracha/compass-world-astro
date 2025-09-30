@@ -1,4 +1,20 @@
+// src/content/config.ts
 import { defineCollection, z } from 'astro:content';
+
+/** Shared meta */
+const baseMeta = {
+  summary: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  featured: z.boolean().default(false),
+  status: z.enum(['draft', 'published', 'archived']).default('published'),
+  weight: z.number().default(0),
+  cover: z.string().optional(),
+  updated: z.string().optional(),
+};
+
+/* =============================================================================
+   Collections
+   ============================================================================= */
 
 const characters = defineCollection({
   type: 'content',
@@ -7,9 +23,7 @@ const characters = defineCollection({
     role: z.string().optional(),
     team: z.string().optional(),
     image: z.string().optional(),
-    summary: z.string().optional(),
-    tags: z.array(z.string()).default([]),
-    updated: z.string().optional(),
+    ...baseMeta,
   }),
 });
 
@@ -20,7 +34,7 @@ const atlas = defineCollection({
     region: z.string().optional(),
     image: z.string().optional(),
     description: z.string().optional(),
-    updated: z.string().optional(),
+    ...baseMeta,
   }),
 });
 
@@ -30,10 +44,9 @@ const ideas = defineCollection({
     title: z.string(),
     firstMention: z.string().optional(),
     category: z.string().optional(),
-    status: z.string().optional(),
     risk: z.string().optional(),
     image: z.string().optional(),
-    summary: z.string().optional(),
+    ...baseMeta,
   }),
 });
 
@@ -41,47 +54,67 @@ const pages = defineCollection({
   type: 'content',
   schema: z.object({
     title: z.string(),
-    summary: z.string().optional(),
+    ...baseMeta,
   }),
 });
 
 const gallery = defineCollection({
+  type: 'content',
   schema: z.object({
     title: z.string(),
     caption: z.string().optional(),
-    image: z.union([z.string(), z.object({ src: z.string(), width: z.number(), height: z.number(), format: z.string() })]),
-    tags: z.array(z.string()).optional(),
+    image: z.union([
+      z.string(),
+      z.object({ src: z.string(), width: z.number(), height: z.number(), format: z.string() })
+    ]),
     sourceUrl: z.string().optional(),
-    updated: z.string().optional(),
+    ...baseMeta,
   }),
 });
 
-/** ✅ חדש: Prime Children – גם דף סקירה וגם פרופילים קצרים של חברים בולטים */
+/** ✅ Prime Children – overview + short profiles */
 const primeChildren = defineCollection({
-  type: "content",
+  type: 'content',
   schema: z.object({
-    name: z.string().optional(), // <- optional to prevent crashes
+    // מזהה/כותרת
+    title: z.string().optional(),   // שימושי בעיקר ל-overview
+    name: z.string().optional(),    // שם תצוגה לדמויות
     alias: z.string().optional(),
+
+    // מדיה/טקסט קצר
     image: z.string().optional(),
     short: z.string().optional(),
-    powers: z.array(z.string()).optional(),
+
+    // כוח/צד/טיפוס
+    power: z.string().optional(),             // ← נדרש ע"י index.astro
+    powers: z.array(z.string()).optional(),   // אם תרצה גם רבים—לא חובה לשימוש בדף
+    side: z.string().optional(),              // "גיבור" / "נבל" או ריק
+    kind: z.enum(['overview', 'member']).default('member'),
+
+    // קישורים חיצוניים אופציונליים
     links: z.array(z.object({ label: z.string().optional(), href: z.string() })).optional(),
+
+    ...baseMeta, // summary/tags/featured/status/weight/cover/updated
   }),
 });
 
-
-/** ✅ חדש: Villains – הן ארגונים (org) והן דמויות (leader/member) */
+/** ✅ Villains */
 const villains = defineCollection({
-  type: "content",
+  type: 'content',
   schema: z.object({
-    title: z.string().min(1, "Missing title"), // כותרת תמיד נדרשת
-    kind: z.enum(["org", "leader", "member"]).default("member"),
-    org: z.string().optional(),                // אם זו דמות — שייכות לארגון
-    leaders: z.array(z.string()).optional(),   // אם זה org — רשימת מנהיגים
-    focus: z.string().optional(),              // דגש/תחום פעילות
-    image: z.string().optional(),              // תמונה ל־OG ולדף
-    summary: z.string().optional(),            // תקציר לתצוגה ברשימות
-    tags: z.array(z.string()).default([]),     // תגיות (ברירת מחדל: [])
+    title: z.string().min(1, 'Missing title'),
+    kind: z.enum(['org', 'leader', 'member']).default('member'),
+    org: z.string().optional(),
+    leaders: z.array(z.string()).optional(),
+    focus: z.string().optional(),
+    image: z.string().optional(),
+    summary: z.string().optional(),
+    tags: z.array(z.string()).default([]),
+    featured: z.boolean().default(false),
+    status: z.enum(['draft', 'published', 'archived']).default('published'),
+    weight: z.number().default(0),
+    cover: z.string().optional(),
+    updated: z.string().optional(),
   }),
 });
 
@@ -91,27 +124,57 @@ const history = defineCollection({
     year: z.string(),
     description: z.string(),
     image: z.string().optional(),
-    order: z.number().optional(),  // נסדר לפי זה
-    updated: z.string().optional(),
+    order: z.number().optional(),
+    ...baseMeta,
   }),
 });
 
 const comics = defineCollection({
-  type: "content",
+  type: 'content',
   schema: z.object({
-    title: z.string(),                 // כותרת בעברית (חובה)
-    summary: z.string().optional(),    // תיאור קצר בעברית (אופציונלי)
-    number: z.number().int().optional(), // מספר פרק (אופציונלי)
-    date: z.string().optional(),       // תאריך ISO (YYYY-MM-DD) או כל מחרוזת תאריך
-    cover: z.string().optional(),      // נתיב עטיפה
-    pages: z.array(z.string()).default([]), // עמודי הקומיקס (נתיבים)
-    tags: z.array(z.string()).default([]),  // תגיות בעברית
-    // אופציונלי: שדות לאנגלית אם תרצה בעתיד, לא בשימוש כעת
+    title: z.string(),
+    summary: z.string().optional(),
+    number: z.number().int().optional(),
+    date: z.string().optional(),
+    cover: z.string().optional(),
+    pages: z.array(z.string()).default([]),
+    tags: z.array(z.string()).default([]),
     title_en: z.string().optional(),
     summary_en: z.string().optional(),
+    featured: z.boolean().default(false),
+    status: z.enum(['draft', 'published', 'archived']).default('published'),
+    weight: z.number().default(0),
+    updated: z.string().optional(),
   }),
 });
 
 export const collections = {
-  characters, atlas, ideas, pages, gallery, primeChildren, villains, history, comics,
+  characters,
+  atlas,
+  ideas,
+  pages,
+  gallery,
+  /** 👇 מזהה האוסף תואם ל-getCollection('prime-children') */
+  'prime-children': primeChildren,
+  villains,
+  history,
+  comics,
 };
+
+/* =============================================================================
+   Helpers
+   ============================================================================= */
+export const isPublished = (entry: { data?: { status?: string } }) =>
+  (entry?.data?.status ?? 'published') === 'published';
+
+export const byFeaturedFirst = (a: any, b: any) => {
+  const fa = !!a?.data?.featured; const fb = !!b?.data?.featured;
+  if (fa !== fb) return fa ? -1 : 1;
+  const wa = a?.data?.weight ?? 0; const wb = b?.data?.weight ?? 0;
+  if (wa !== wb) return wb - wa;
+  return String(a?.data?.title || a?.data?.name || '').localeCompare(
+    String(b?.data?.title || b?.data?.name || ''), 'he'
+  );
+};
+
+export type { CollectionEntry } from 'astro:content';

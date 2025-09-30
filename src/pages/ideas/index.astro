@@ -5,7 +5,7 @@ const items = (await getCollection('ideas')).sort((a,b) => a.slug.localeCompare(
 ---
 <BaseLayout title="Ideas | Compass World" description="Story seeds & mechanics">
   <section class="container py-5">
-    <h1 class="display-6 mb-4">Ideas</h1>
+    <h1 class="display-6 mb-4">רעיונות ומושגים</h1>
     <div class="row g-4">
       {items.map(({ data }) => (
         <div class="col-md-6" data-reveal>
