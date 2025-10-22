@@ -1,13 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import '../styles/home.css';
-import { t } from '../lib/i18n'; // עברית בלבד – משתמשים ישירות ב-he
+import { t } from '../lib/i18n';
 
-// BASE בטוח לתתי-נתיבים (כמו /compass-world-astro/)
 const RAW_BASE = import.meta.env.BASE_URL ?? '/';
 const BASE = RAW_BASE.endsWith('/') ? RAW_BASE : `${RAW_BASE}/`;
 
-// טקסטים בעברית
 const pageTitle = (t('he','siteName') || 'עולם המצפן') + ' | בית';
 const eyebrow   = t('he','home.eyebrow')  || 'ויקי יקום';
 const titleTxt  = t('he','home.title')    || 'עולם המצפן';
@@ -19,67 +17,81 @@ const btnGallery    = t('he','home.buttons.gallery')    || 'גלריה';
 const btnPrime      = t('he','nav.primeChildren')       || 'ילדי פריים';
 ---
 <BaseLayout title={pageTitle} class="dark">
-  <!-- טעינת פונטים: Heebo לטקסט, ו-Secular One לכותרת -->
   <Fragment slot="head">
+    <!-- קיימים -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Secular+One&display=swap" rel="stylesheet" />
+
+    <!-- ⬇️ חדש: Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+
     <style>
       :root { --font-sans: "Heebo", system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
               --font-display-he: "Secular One", "Heebo", sans-serif; }
       html, body { font-family: var(--font-sans); }
       .font-display-he { font-family: var(--font-display-he); font-weight: 900; letter-spacing: .02em;
                          text-shadow: 0 2px 0 rgba(0,0,0,.25), 0 6px 30px rgba(168,85,247,.25); }
+
+      /* ===== Map styles ===== */
+      #cw-map { height: 480px; border-radius: 1rem; overflow: clip; }
+      .leaflet-container { font-family: var(--font-sans); }
+      .leaflet-popup-content h3 { margin: 0 0 .25rem; font-size: 1.05rem; }
+      .leaflet-popup a { text-decoration: none; }
+      .cw-badge { display:inline-block; padding:.15rem .5rem; border-radius:999px; font-size:.75rem; }
+      .cw-badge--prime { background:#1f2937; color:#a6e3ff; }
+      .cw-badge--city  { background:#0b3b5e; color:#cfe9ff; }
+      .cw-badge--realm { background:#3b0764; color:#e9d5ff; }
+      .card-glass[data-reveal] { backdrop-filter: blur(8px); background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); }
     </style>
   </Fragment>
 
+  <!-- ===== Hero (קיים) ===== -->
   <header class="cw-hero container-xxl">
+    <!-- ... כל התוכן שלך נשאר ללא שינוי ... -->
     <div class="cw-hero__inner">
       <div class="cw-hero__eyebrow will-animate">{eyebrow}</div>
-
-      <!-- ✨ טייטל עם אפקטים -->
-      <h1 class="cw-hero__title js-hero-title will-animate font-display-he">
-        {titleTxt}
-      </h1>
-
-      <p class="cw-hero__subtitle will-animate">
-        {subtitle}
-      </p>
-
-      <!-- קישורים עם BASE כך שיעבדו תחת /compass-world-astro/ -->
+      <h1 class="cw-hero__title js-hero-title will-animate font-display-he">{titleTxt}</h1>
+      <p class="cw-hero__subtitle will-animate">{subtitle}</p>
       <div class="mt-3 d-flex flex-wrap justify-content-center gap-2 will-animate">
-        <a class="btn btn-brand btn-lg px-4" href={`${BASE}characters/`}>
-          <i class="bi bi-people me-2"></i> {btnCharacters}
-        </a>
-        <a class="btn btn-ghost btn-lg px-4" href={`${BASE}history/`}>
-          <i class="bi bi-clock-history me-2"></i> {btnChrono}
-        </a>
-        <a class="btn btn-outline-light btn-lg px-4" href={`${BASE}prime-children/`}>
-          {btnPrime}
-        </a>
-        <a class="btn btn-outline-light btn-lg px-4" href={`${BASE}gallery/`}>
-          {btnGallery}
-        </a>
+        <a class="btn btn-brand btn-lg px-4" href={`${BASE}characters/`}><i class="bi bi-people me-2"></i> {btnCharacters}</a>
+        <a class="btn btn-ghost btn-lg px-4" href={`${BASE}history/`}><i class="bi bi-clock-history me-2"></i> {btnChrono}</a>
+        <a class="btn btn-outline-light btn-lg px-4" href={`${BASE}prime-children/`}>{btnPrime}</a>
+        <a class="btn btn-outline-light btn-lg px-4" href={`${BASE}gallery/`}>{btnGallery}</a>
       </div>
     </div>
   </header>
-  <section class="my-5 text-center" aria-labelledby="cta-title">
-      <div class="card card-glass p-4 p-md-5 rounded-4" data-reveal>
-        <h2 id="cta-title" class="h5 mb-2 text-primary fw-bold"><i class="bi bi-facebook"></i> מצטרפים לאדריכלים</h2>
-        <p class="mb-4 text-white-70">שתפו רעיונות, סקיצות ומשוב בקהילה הרשמית של עולם המצפן.</p>
-        <a
-          class="btn btn-primary btn-lg fw-bold"
-          href="https://www.facebook.com/groups/6941542269224419"
-          target="_blank"
-          rel="noopener"
-        >
-          <i class="bi bi-facebook"></i> כניסה לקבוצה
-        </a>
-      </div>
-    </section>
 
-  <!-- ✨ אנימציות לטייטל -->
+  <!-- ===== CTA (קיים) ===== -->
+  <section class="my-5 text-center" aria-labelledby="cta-title">
+    <!-- ... כרטיס הקבוצה בפייסבוק ... -->
+    <div class="card card-glass p-4 p-md-5 rounded-4" data-reveal>
+      <h2 id="cta-title" class="h5 mb-2 text-primary fw-bold"><i class="bi bi-facebook"></i> מצטרפים לאדריכלים</h2>
+      <p class="mb-4 text-white-70">שתפו רעיונות, סקיצות ומשוב בקהילה הרשמית של עולם המצפן.</p>
+      <a class="btn btn-primary btn-lg fw-bold" href="https://www.facebook.com/groups/6941542269224419" target="_blank" rel="noopener">
+        <i class="bi bi-facebook"></i> כניסה לקבוצה
+      </a>
+    </div>
+  </section>
+
+  <!-- ⬇️ חדש: מפת היקום -->
+  <section class="container-xxl my-5" aria-labelledby="map-title">
+    <div class="card card-glass p-3 p-md-4 rounded-4">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <h2 id="map-title" class="h4 m-0"><i class="bi bi-globe2 me-2"></i> מפת היקום</h2>
+        <small class="text-white-50">גרסה ראשונית · לחצו על נקודה לפרטים</small>
+      </div>
+      <div id="cw-map" dir="rtl" aria-label="Interactive universe map"></div>
+    </div>
+  </section>
+
+  <!-- ===== אנימציות לטייטל (קיים) ===== -->
   <script is:inline>
     (() => {
       const els = document.querySelectorAll('.will-animate');
@@ -97,7 +109,6 @@ const btnPrime      = t('he','nav.primeChildren')       || 'ילדי פריים'
     (() => {
       const title = document.querySelector('.js-hero-title');
       if (!title) return;
-
       const text = title.textContent.trim();
       title.textContent = '';
       [...text].forEach((ch) => {
@@ -106,17 +117,12 @@ const btnPrime      = t('he','nav.primeChildren')       || 'ילדי פריים'
         span.textContent = ch === ' ' ? '\u00A0' : ch;
         title.appendChild(span);
       });
-
       const io = new IntersectionObserver((entries) => {
         const e = entries[0];
         if (!e?.isIntersecting) return;
         title.classList.add('reveal', 'shimmer');
-
         const letters = title.querySelectorAll('.tch');
-        letters.forEach((el, i) => {
-          setTimeout(() => el.classList.add('in'), i * 25);
-        });
-
+        letters.forEach((el, i) => setTimeout(() => el.classList.add('in'), i * 25));
         setTimeout(() => title.classList.remove('shimmer'), 1600);
         io.disconnect();
       }, { threshold: 0.6 });
@@ -124,51 +130,143 @@ const btnPrime      = t('he','nav.primeChildren')       || 'ילדי פריים'
     })();
   </script>
 
+  <!-- ⬇️ חדש: Leaflet JS + אתחול המפה -->
+  <script
+    is:inline
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script is:inline>
+    (() => {
+      const el = document.getElementById('cw-map');
+      if (!el || typeof L === 'undefined') return;
+
+      // נקודת פתיחה על המזרח הים-תיכוני
+      const map = L.map(el, { zoomControl: true, scrollWheelZoom: true })
+        .setView([32.0, 34.8], 6);
+
+      // שכבת אריחים (OSM)
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // אייקון עדין כהה
+      const Pin = (color = '#60a5fa') => L.divIcon({
+        className: 'cw-pin',
+        html: `
+          <span style="
+            display:inline-block;
+            width:12px;height:12px;border-radius:999px;
+            background:${color}; box-shadow:0 0 0 3px rgba(255,255,255,.15);
+            border:1px solid rgba(0,0,0,.2);
+          "></span>
+        `,
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+        popupAnchor: [0, -6]
+      });
+
+      // נתוני נקודות (גרסה ראשונית — אפשר להוסיף/לשנות חופשית)
+      const places = [
+        {
+          name: 'מגדל הארץ — תל ציון',
+          type: 'city',
+          coords: [31.78, 35.21],
+          href: `${BASE}locations/tel-zion/`,
+          desc: 'המטה הטכנולוגי החדש של הברית, עם גישת לוויינים לניטור אירועים.'
+        },
+        {
+          name: 'ארכיפלג ארגוס',
+          type: 'realm',
+          coords: [34.2, 29.0],
+          href: `${BASE}locations/argos/`,
+          desc: 'מרכז מסחר במזרח הים התיכון; צומת עלילה חשוב.'
+        },
+        {
+          name: 'סייבר-סיטי',
+          type: 'city',
+          coords: [37.98, 23.72],
+          href: `${BASE}locations/cyber-city/`,
+          desc: 'בירת ה-AI והחדשנות (משלבת תשתיות רובוטיות מתקדמות).'
+        },
+        {
+          name: 'ניו אלביון',
+          type: 'city',
+          coords: [51.13, 1.35],
+          href: `${BASE}locations/new-albion/`,
+          desc: 'עיר מרחפת מעל צוקי דובר — מורשת אימפריאלית עם טוויסט מודרני.'
+        },
+        {
+          name: 'סאבלניה',
+          type: 'realm',
+          coords: [34.5, 33.0],
+          href: `${BASE}locations/sablenia/`,
+          desc: 'רפובליקה תת-ימית בים התיכון, זירה קבועה לצונאמי וחבריה.'
+        },
+        {
+          name: 'ארת׳ סיטי (הרצליה)',
+          type: 'city',
+          coords: [32.16, 34.84],
+          href: `${BASE}locations/earth-city/`,
+          desc: 'ביתם של רבים מחברי הברית; נקודת מוצא להרפתקאות.'
+        }
+      ];
+
+      const typeStyle = (t) => t === 'city' ? '#38bdf8' : t === 'realm' ? '#a78bfa' : '#60a5fa';
+      const typeBadge = (t) =>
+        `<span class="cw-badge ${t==='city'?'cw-badge--city':t==='realm'?'cw-badge--realm':'cw-badge--prime'}">
+           ${t==='city'?'עיר':t==='realm'?'ממלכה/עולם':'פריים'}
+         </span>`;
+
+      const group = L.featureGroup();
+      places.forEach(p => {
+        const m = L.marker(p.coords, { icon: Pin(typeStyle(p.type)) })
+          .bindPopup(`
+            <div style="min-width:220px">
+              <h3 class="font-display-he">${p.name}</h3>
+              <div class="mb-2">${typeBadge(p.type)}</div>
+              <p style="margin:0 0 .5rem;line-height:1.35">${p.desc}</p>
+              <a href="${p.href}" class="btn btn-sm btn-outline-light">
+                כניסה לעמוד
+              </a>
+            </div>
+          `);
+        m.addTo(group);
+      });
+      group.addTo(map);
+
+      // תיחום אוטומטי לכל הנקודות
+      try { map.fitBounds(group.getBounds().pad(0.25)); } catch(e) {}
+
+      // שמירת מצב זום אחרי פתיחת פופאפ (חוויה נוחה במובייל)
+      map.on('popupopen', (e) => {
+        const px = map.project(e.popup._latlng);
+        px.y -= 80; // מעלה קצת כדי שלא ייחתך מתחת לכרטיס
+        map.panTo(map.unproject(px), {animate:true, duration:.25});
+      });
+    })();
+  </script>
+
   <style>
     .will-animate { opacity: 0; transform: translateY(12px); transition: opacity .6s ease, transform .6s ease; }
     .will-animate.in { opacity: 1; transform: none; }
-
-    /* ===== Hero Title Effects (שומר את הגרדיאנט והקו) ===== */
-    .cw-hero__title {
-      position: relative;
-      font-weight: 800;
-      line-height: 1.04;
-      letter-spacing: .5px;
+    .cw-hero__title { position: relative; font-weight: 800; line-height: 1.04; letter-spacing: .5px;
       background: linear-gradient(90deg, #eaecef, #ffffff 35%, #a6d3ff 60%, #ffffff);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-      background-size: 200% 100%;
-    }
-    .cw-hero__title::after {
-      content: "";
-      position: absolute;
-      left: 0; bottom: -0.2em;
-      height: .18em; width: 0;
-      border-radius: 999px;
-      background: linear-gradient(90deg,#ffb703,#00d4ff 60%,#a855f7);
+      -webkit-background-clip: text; background-clip: text; color: transparent; background-size: 200% 100%; }
+    .cw-hero__title::after { content: ""; position: absolute; left: 0; bottom: -0.2em; height: .18em; width: 0;
+      border-radius: 999px; background: linear-gradient(90deg,#ffb703,#00d4ff 60%,#a855f7);
       box-shadow: 0 6px 30px rgba(0,0,0,.35), 0 0 12px rgba(168,85,247,.35);
-      transition: width .6s cubic-bezier(.2,.8,.2,1) .25s;
-    }
+      transition: width .6s cubic-bezier(.2,.8,.2,1) .25s; }
     .cw-hero__title.reveal::after { width: 100%; }
-
-    @keyframes shimmer {
-      from { background-position: 0% 50%; filter: drop-shadow(0 6px 24px rgba(0,0,0,.25)); }
-      to   { background-position: 100% 50%; filter: drop-shadow(0 10px 34px rgba(0,0,0,.35)); }
-    }
+    @keyframes shimmer { from { background-position: 0% 50%; filter: drop-shadow(0 6px 24px rgba(0,0,0,.25)); }
+                         to   { background-position: 100% 50%; filter: drop-shadow(0 10px 34px rgba(0,0,0,.35)); } }
     .cw-hero__title.shimmer { animation: shimmer 1.4s ease-out both; }
-
-    .cw-hero__title .tch {
-      display: inline-block;
-      opacity: 0;
-      transform: translateY(18px) scale(.98);
-      filter: blur(2px);
-      transition: opacity .4s ease, transform .4s ease, filter .4s ease;
-    }
-    .cw-hero__title .tch.in {
-      opacity: 1;
-      transform: none;
-      filter: none;
-    }
-
+    .cw-hero__title .tch { display: inline-block; opacity: 0; transform: translateY(18px) scale(.98);
+      filter: blur(2px); transition: opacity .4s ease, transform .4s ease, filter .4s ease; }
+    .cw-hero__title .tch.in { opacity: 1; transform: none; filter: none; }
     .cw-hero { padding-top: 5rem; padding-bottom: 2rem; }
     .cw-hero__eyebrow { text-transform: uppercase; letter-spacing: .15em; font-size: .8rem; color: #bbb; }
     .cw-hero__subtitle { color: #bfc6cf; max-width: 880px; margin: .75rem auto 0; }
