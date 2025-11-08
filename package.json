@@ -9,9 +9,9 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/react": "^4.4.0",
+    "@astrojs/react": "^4.4.2",
     "@astrojs/sitemap": "^3.6.0",
-    "astro": "^5.14.6",
+    "astro": "^5.15.4",
     "cheerio": "^1.1.2",
     "gsap": "^3.13.0",
     "json5": "^2.2.3",
@@ -22,7 +22,7 @@
     "zod": "^3.25.8"
   },
   "devDependencies": {
-    "@astrojs/mdx": "^4.3.7",
+    "@astrojs/mdx": "^4.3.10",
     "@types/gsap": "^3.0.0",
     "fast-glob": "^3.3.3",
     "gray-matter": "^4.0.3"
